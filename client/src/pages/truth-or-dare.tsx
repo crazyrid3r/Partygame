@@ -94,10 +94,15 @@ export default function TruthOrDare() {
     if (user && currentPlayerName === user.username) {
       try {
         await apiRequest("POST", "/api/scores", {
-          playerName: user.username, // Use the authenticated username
+          playerName: user.username,
           points: 5,
           userId: user.id,
-          gameType: 'truth-or-dare'
+          gameType: 'Truth or Dare'
+        });
+
+        toast({
+          title: "Punkte gespeichert",
+          description: "+5 Punkte für das Erfüllen der Aufgabe",
         });
       } catch (error) {
         console.error("Failed to save score:", error);
@@ -121,10 +126,10 @@ export default function TruthOrDare() {
     if (user && currentPlayerName === user.username) {
       try {
         await apiRequest("POST", "/api/scores", {
-          playerName: user.username, // Use the authenticated username
+          playerName: user.username,
           points: -3,
           userId: user.id,
-          gameType: 'truth-or-dare'
+          gameType: 'Truth or Dare'
         });
 
         toast({
