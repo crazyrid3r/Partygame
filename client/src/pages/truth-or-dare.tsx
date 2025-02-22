@@ -72,11 +72,14 @@ export default function TruthOrDare() {
   // Update challenge text whenever language changes
   useEffect(() => {
     if (currentQuestion) {
-      setChallenge(
-        language === 'en' && currentQuestion.content_en
-          ? currentQuestion.content_en
-          : currentQuestion.content
-      );
+      if (language === 'en') {
+        setChallenge(
+          currentQuestion.content_en || 
+          `${currentQuestion.content} (Translation not available)`
+        );
+      } else {
+        setChallenge(currentQuestion.content);
+      }
     }
   }, [language, currentQuestion]);
 
