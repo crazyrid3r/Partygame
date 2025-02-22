@@ -1,4 +1,4 @@
-import { Home, Languages } from "lucide-react";
+import { Home, Languages, LogIn, LogOut, User } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   DropdownMenu,
@@ -9,11 +9,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { useContext } from "react";
 import { LanguageContext, useTranslation } from "@/lib/i18n";
+import { useAuth } from "@/hooks/use-auth";
 
 export function NavBar() {
   const [location] = useLocation();
   const t = useTranslation();
   const { setLanguage } = useContext(LanguageContext);
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <nav className="bg-primary/5 border-b">
@@ -32,6 +38,30 @@ export function NavBar() {
               {location === "/truth-or-dare" && t.nav.truthOrDare}
               {location === "/story" && t.nav.storyGenerator}
             </span>
+          )}
+
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  {user.username}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/auth">
+              <Button variant="ghost" className="flex items-center gap-2">
+                <LogIn className="w-5 h-5" />
+                Login
+              </Button>
+            </Link>
           )}
 
           <DropdownMenu>

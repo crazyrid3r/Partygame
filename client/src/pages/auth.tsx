@@ -10,13 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 
 type AuthMode = "login" | "register";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { login, register, user } = useAuth();
   const [mode, setMode] = useState<AuthMode>("login");
   const [formData, setFormData] = useState({
     username: "",
@@ -24,30 +25,28 @@ export default function AuthPage() {
     email: "",
   });
 
+  // Redirect if already logged in
+  if (user) {
+    setLocation("/");
+    return null;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const endpoint = mode === "login" ? "/api/login" : "/api/register";
-      const data = mode === "login"
-        ? { username: formData.username, password: formData.password }
-        : formData;
-
-      const response = await apiRequest("POST", endpoint, data);
-      
-      if (response.ok) {
-        toast({
-          title: mode === "login" ? "Login erfolgreich" : "Registrierung erfolgreich",
-          description: "Willkommen zurück!",
+      if (mode === "login") {
+        await login({
+          username: formData.username,
+          password: formData.password,
         });
-        setLocation("/");
       } else {
-        const error = await response.json();
-        throw new Error(error.error);
+        await register(formData);
       }
-    } catch (error) {
+      setLocation("/");
+    } catch (error: any) {
       toast({
         title: "Fehler",
-        description: error.message,
+        description: error.message || "Ein Fehler ist aufgetreten",
         variant: "destructive",
       });
     }
