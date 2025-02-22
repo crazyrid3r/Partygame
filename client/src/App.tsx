@@ -7,7 +7,6 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import DiceGame from "@/pages/dice-game";
 import TruthOrDare from "@/pages/truth-or-dare";
-import StoryGenerator from "@/pages/story-generator";
 import Impressum from "@/pages/impressum";
 import Admin from "@/pages/admin";
 import AuthPage from "@/pages/auth";
@@ -46,7 +45,6 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/dice" component={DiceGame} />
           <Route path="/truth-or-dare" component={TruthOrDare} />
-          <Route path="/story" component={StoryGenerator} />
           <Route path="/impressum" component={Impressum} />
           <Route path="/admin" component={Admin} />
           <Route path="/high-scores" component={HighScores} />

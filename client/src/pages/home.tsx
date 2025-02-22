@@ -29,10 +29,8 @@ export default function Home() {
         <GameCard
           title={t.home.storyGenerator.title}
           description={t.home.storyGenerator.description}
-          path="/story"
           icon={<Feather className="w-8 h-8 text-muted-foreground" />}
-          disabled
-          className="opacity-70"
+          className="opacity-70 cursor-not-allowed"
         />
       </div>
     </div>
