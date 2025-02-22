@@ -13,6 +13,7 @@ import Admin from "@/pages/admin";
 import { useState } from "react";
 import { LanguageContext, type Language, useTranslation } from "@/lib/i18n";
 import { SplashScreen } from "@/components/splash-screen";
+import HighScores from "@/pages/high-scores";
 
 function Router() {
   const t = useTranslation();
@@ -28,6 +29,7 @@ function Router() {
           <Route path="/story" component={StoryGenerator} />
           <Route path="/impressum" component={Impressum} />
           <Route path="/admin" component={Admin} />
+          <Route path="/high-scores" component={HighScores} />
           <Route component={NotFound} />
         </Switch>
       </main>
@@ -38,6 +40,9 @@ function Router() {
           </Link>
           <Link href="/admin" className="text-sm text-muted-foreground hover:text-primary">
             Admin
+          </Link>
+          <Link href="/high-scores" className="text-sm text-muted-foreground hover:text-primary">
+            High Scores 🏆
           </Link>
         </div>
       </footer>

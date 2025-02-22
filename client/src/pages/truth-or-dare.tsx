@@ -55,6 +55,8 @@ export default function TruthOrDare() {
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [newPlayer, setNewPlayer] = useState("");
   const [challenge, setChallenge] = useState<string | null>(null);
+  const [playerScores, setPlayerScores] = useState<Record<string, number>>({});
+
 
   const selectGameMode = (mode: GameMode) => {
     setGameMode(mode);
@@ -78,6 +80,21 @@ export default function TruthOrDare() {
 
     const list = type === "truth" ? truthsByMode[gameMode] : daresByMode[gameMode];
     setChallenge(list[Math.floor(Math.random() * list.length)]);
+
+    // Update player score
+    const currentPlayerName = players[currentPlayer];
+    const currentScore = (playerScores[currentPlayerName] || 0) + 5;
+    setPlayerScores({ ...playerScores, [currentPlayerName]: currentScore });
+
+    // Placeholder for API request -  replace with actual API call
+    const apiRequest = (method: string, url: string, data: any) => {
+      console.log("API Request:", method, url, data); // Replace with actual API call
+    };
+    apiRequest("POST", "/api/scores", {
+      playerName: currentPlayerName,
+      points: currentScore
+    });
+
     setCurrentPlayer((current) => (current + 1) % players.length);
   };
 
@@ -175,14 +192,20 @@ export default function TruthOrDare() {
               {players[currentPlayer]} ist dran
             </h2>
             <p className="text-sm text-muted-foreground mt-2">
-              Modus: {gameMode === 'kids' ? 'Kinder' : gameMode === 'normal' ? 'Normal' : 'Spicy'} 
+              Modus: {gameMode === 'kids' ? 'Kinder' : gameMode === 'normal' ? 'Normal' : 'Spicy'}
             </p>
           </div>
 
-          {challenge ? (
+          {challenge && (
             <div className="text-center mb-6">
               <MessageSquare className="w-12 h-12 mx-auto mb-4 text-primary" />
               <p className="text-lg">{challenge}</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                +5 Punkte für {players[currentPlayer]}!
+              </p>
+              <p className="text-sm font-semibold mt-1">
+                Aktuelle Punkte: {playerScores[players[currentPlayer]] || 0}
+              </p>
               <Button
                 className="mt-4"
                 onClick={() => setChallenge(null)}
@@ -190,7 +213,8 @@ export default function TruthOrDare() {
                 Nächster Spieler
               </Button>
             </div>
-          ) : (
+          )}
+          {!challenge && (
             <div className="flex gap-4">
               <Button
                 className="flex-1"

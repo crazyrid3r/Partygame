@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGameSchema, insertStorySchema } from "@shared/schema";
+import { insertGameSchema, insertStorySchema, insertScoreSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Game routes
@@ -39,6 +39,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/stories/recent", async (_req, res) => {
     const stories = await storage.getRecentStories();
     res.json(stories);
+  });
+
+  // Score routes
+  app.post("/api/scores", async (req, res) => {
+    const parsed = insertScoreSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Invalid score data" });
+    }
+    const score = await storage.createScore(parsed.data);
+    res.json(score);
+  });
+
+  app.get("/api/scores", async (_req, res) => {
+    const scores = await storage.getHighScores();
+    res.json(scores);
   });
 
   const httpServer = createServer(app);

@@ -15,13 +15,23 @@ export const stories = pgTable("stories", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const scores = pgTable("scores", {
+  id: serial("id").primaryKey(),
+  playerName: text("player_name").notNull(),
+  points: integer("points").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertGameSchema = createInsertSchema(games).omit({ id: true, createdAt: true });
 export const insertStorySchema = createInsertSchema(stories).omit({ id: true, createdAt: true });
+export const insertScoreSchema = createInsertSchema(scores).omit({ id: true, createdAt: true });
 
 export type Game = typeof games.$inferSelect;
 export type InsertGame = z.infer<typeof insertGameSchema>;
 export type Story = typeof stories.$inferSelect;
 export type InsertStory = z.infer<typeof insertStorySchema>;
+export type Score = typeof scores.$inferSelect;
+export type InsertScore = z.infer<typeof insertScoreSchema>;
 
 export type GameState = {
   players: string[];
