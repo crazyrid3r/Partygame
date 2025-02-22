@@ -207,25 +207,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Export questions route
   app.get("/api/questions/export", async (_req, res) => {
     try {
-      // Hole alle aktiven Fragen
+      // Get all active questions
       const allQuestions = await storage.getAllQuestions();
 
-      // Erstelle ein Arbeitsblatt
+      // Create a worksheet with translations
       const worksheet = XLSX.utils.json_to_sheet(allQuestions.map(q => ({
         type: q.type,
-        content: q.content,
+        content_de: q.content, // German content (original)
+        content_en: q.content_en || '', // English content
         mode: q.mode,
         active: q.active ? 'true' : 'false'
       })));
 
-      // Erstelle ein Arbeitsbuch und füge das Arbeitsblatt hinzu
+      // Add column headers with descriptions
+      XLSX.utils.sheet_add_aoa(worksheet, [
+        ['Type', 'German Content', 'English Content', 'Mode', 'Active']
+      ], { origin: 'A1' });
+
+      // Create workbook and add worksheet
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Questions");
 
-      // Schreibe die Excel-Datei in einen Buffer
+      // Write Excel file to buffer
       const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 
-      // Sende die Datei
+      // Send file
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', 'attachment; filename=questions.xlsx');
       res.send(excelBuffer);
@@ -242,17 +248,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      // Lese die Excel-Datei
+      // Read Excel file
       const workbook = XLSX.read(req.file.buffer);
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const questions = XLSX.utils.sheet_to_json(worksheet);
 
-      // Validiere und importiere die Fragen
+      // Validate and import questions
       const results = await Promise.all(
         questions.map(async (q: any) => {
           const question = {
             type: q.type,
-            content: q.content,
+            content: q.content_de || q.content, // German content
+            content_en: q.content_en, // English content
             mode: q.mode,
             active: q.active === 'true'
           };
@@ -270,9 +277,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       res.json({
-        success: results.filter(r => !r.error).length,
-        failed: results.filter(r => r.error).length,
-        errors: results.filter(r => r.error)
+        success: results.filter(r => !('error' in r)).length,
+        failed: results.filter(r => 'error' in r).length,
+        errors: results.filter(r => 'error' in r)
       });
     } catch (error) {
       console.error("Import error:", error);

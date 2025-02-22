@@ -29,7 +29,7 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // User management methods
+  // User management methods remain unchanged
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
@@ -46,14 +46,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: number, updateData: Partial<User>): Promise<User> {
-    console.log("Storage updateUser called with:", { id, updateData });
-
-    // Filtern Sie undefined Werte heraus
     const cleanedData = Object.fromEntries(
       Object.entries(updateData).filter(([_, value]) => value !== undefined)
     );
-
-    console.log("Cleaned update data:", cleanedData);
 
     if (Object.keys(cleanedData).length === 0) {
       throw new Error("No values to set");
@@ -65,8 +60,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
 
-    console.log("Storage updateUser result:", updatedUser);
-
     if (!updatedUser) {
       throw new Error('User not found');
     }
@@ -74,7 +67,7 @@ export class DatabaseStorage implements IStorage {
     return updatedUser;
   }
 
-  // Existing methods
+  // Game methods remain unchanged
   async createGame(game: InsertGame): Promise<Game> {
     const [newGame] = await db.insert(games).values(game).returning();
     return newGame;
@@ -94,6 +87,7 @@ export class DatabaseStorage implements IStorage {
     return game;
   }
 
+  // Story methods with fixed ordering
   async createStory(story: InsertStory): Promise<Story> {
     const [newStory] = await db.insert(stories).values(story).returning();
     return newStory;
@@ -108,10 +102,11 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(stories)
-      .orderBy({ created_at: 'desc' })
+      .orderBy(stories.createdAt.desc())
       .limit(10);
   }
 
+  // Score methods with fixed SQL type handling
   async createScore(score: InsertScore): Promise<Score> {
     const [newScore] = await db.insert(scores).values(score).returning();
     return newScore;
@@ -119,30 +114,27 @@ export class DatabaseStorage implements IStorage {
 
   async getHighScores(): Promise<Score[]> {
     try {
-      console.log("Fetching high scores...");
       const result = await db
         .select({
           playerName: scores.playerName,
-          points: sql<number>`SUM(${scores.points})`.mapWith(Number),
+          points: sql<number>`CAST(SUM(${scores.points}) as INTEGER)`.mapWith(Number),
         })
         .from(scores)
         .groupBy(scores.playerName)
-        .orderBy(sql`SUM(${scores.points})`, 'desc')
+        .orderBy(sql`SUM(${scores.points})`.desc())
         .limit(10);
-
-      console.log("High scores query result:", result);
 
       if (!result || result.length === 0) {
         return [];
       }
 
       return result.map((score, index) => ({
-        id: index + 1, // Verwende einen Index als ID
-        userId: null, // Nicht relevant für die Gesamtanzeige
+        id: index + 1,
+        userId: null,
         playerName: score.playerName,
         points: score.points,
-        gameType: 'Gesamt', // Wir zeigen nur die Gesamtpunktzahl an
-        createdAt: new Date() // Nicht relevant für die Gesamtpunktzahl
+        gameType: 'Gesamt',
+        createdAt: new Date()
       }));
     } catch (error) {
       console.error("Error fetching high scores:", error);
@@ -150,6 +142,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Question methods with translation support
   async createQuestion(question: InsertQuestion): Promise<Question> {
     const [newQuestion] = await db.insert(questions).values(question).returning();
     return newQuestion;

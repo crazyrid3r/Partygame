@@ -55,13 +55,13 @@ export const scores = pgTable("scores", {
 export const questions = pgTable("questions", {
   id: serial("id").primaryKey(),
   type: text("type").notNull(), // 'truth' oder 'dare'
-  content: text("content").notNull(),
+  content: text("content").notNull(), // German content
+  content_en: text("content_en"), // English content
   mode: text("mode").notNull(), // 'kids', 'normal', 'spicy'
   active: boolean("active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Relations
 export const usersRelations = relations(users, ({ many }) => ({
   sentMessages: many(messages, { relationName: "sender" }),
   receivedMessages: many(messages, { relationName: "receiver" }),
@@ -71,7 +71,6 @@ export const usersRelations = relations(users, ({ many }) => ({
   friendOf: many(friendships, { relationName: "friend" }),
 }));
 
-// Schemas for insertion
 export const insertUserSchema = createInsertSchema(users)
   .omit({ id: true, createdAt: true, profileImage: true, bio: true })
   .extend({
@@ -84,9 +83,12 @@ export const insertMessageSchema = createInsertSchema(messages).omit({ id: true,
 export const insertGameSchema = createInsertSchema(games).omit({ id: true, createdAt: true });
 export const insertStorySchema = createInsertSchema(stories).omit({ id: true, createdAt: true });
 export const insertScoreSchema = createInsertSchema(scores).omit({ id: true, createdAt: true });
-export const insertQuestionSchema = createInsertSchema(questions).omit({ id: true, createdAt: true });
+export const insertQuestionSchema = createInsertSchema(questions)
+  .omit({ id: true, createdAt: true })
+  .extend({
+    content_en: z.string().optional(),
+  });
 
-// Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Friendship = typeof friendships.$inferSelect;
