@@ -63,8 +63,9 @@ export default function TruthOrDare() {
 
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
     setChallenge(randomQuestion.content);
+  };
 
-    // Update player score
+  const handleCompleteChallenge = async () => {
     const currentPlayerName = players[currentPlayer];
     const currentScore = (playerScores[currentPlayerName] || 0) + 5;
     setPlayerScores({ ...playerScores, [currentPlayerName]: currentScore });
@@ -83,6 +84,9 @@ export default function TruthOrDare() {
         variant: "destructive",
       });
     }
+
+    setChallenge(null);
+    setCurrentPlayer((current) => (current + 1) % players.length);
   };
 
   const handleSkipChallenge = async () => {
@@ -110,9 +114,8 @@ export default function TruthOrDare() {
       });
     }
 
-    // Move to next player
-    setCurrentPlayer((current) => (current + 1) % players.length);
     setChallenge(null);
+    setCurrentPlayer((current) => (current + 1) % players.length);
   };
 
   if (!gameMode) {
@@ -220,10 +223,7 @@ export default function TruthOrDare() {
               <div className="mt-4 space-y-4">
                 <Button
                   className="w-full"
-                  onClick={() => {
-                    setChallenge(null);
-                    setCurrentPlayer((current) => (current + 1) % players.length);
-                  }}
+                  onClick={handleCompleteChallenge}
                 >
                   Aufgabe erledigt (+5 Punkte)
                 </Button>
