@@ -8,7 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Question } from "@shared/schema";
 import { NicknameGenerator } from "@/components/nickname-generator";
-import { useAuth } from "@/hooks/use-auth"; // Fixed import path
+import { useAuth } from "@/hooks/use-auth";
 
 type GameMode = 'kids' | 'normal' | 'spicy';
 
@@ -41,18 +41,25 @@ export default function TruthOrDare() {
   const handlePlayerCountSubmit = (count: number) => {
     if (count > 0) {
       setPlayerCount(count);
+      setPlayers([]); // Reset players when changing count
+      setPlayerScores({}); // Reset scores
     }
   };
 
-  const addPlayer = () => {
+  const addPlayer = (playerName: string = newPlayer) => {
     if (players.length < playerCount!) {
-      if (user && newPlayer === user.username) {
-        // Wenn der angemeldete Benutzer hinzugefügt wird
-        setPlayers([...players, user.username]);
-      } else if (newPlayer.trim()) {
-        setPlayers([...players, newPlayer.trim()]);
+      const trimmedName = playerName.trim();
+      if (trimmedName) {
+        setPlayers(prev => [...prev, trimmedName]);
+        setPlayerScores(prev => ({ ...prev, [trimmedName]: 0 }));
+        setNewPlayer(""); // Reset input after adding
       }
-      setNewPlayer("");
+    }
+  };
+
+  const handleAddCurrentUser = () => {
+    if (user && players.length < playerCount!) {
+      addPlayer(user.username);
     }
   };
 
@@ -78,23 +85,23 @@ export default function TruthOrDare() {
     const currentScore = (playerScores[currentPlayerName] || 0) + 5;
     setPlayerScores({ ...playerScores, [currentPlayerName]: currentScore });
 
-    // Save score to database
-    try {
-      const scoreData = {
-        playerName: currentPlayerName,
-        points: 5,
-        userId: user?.id, // Wenn der aktuelle Spieler der angemeldete Benutzer ist
-        gameType: 'truth-or-dare'
-      };
-
-      await apiRequest("POST", "/api/scores", scoreData);
-    } catch (error) {
-      console.error("Failed to save score:", error);
-      toast({
-        title: "Fehler",
-        description: "Punkte konnten nicht gespeichert werden",
-        variant: "destructive",
-      });
+    // Save score to database if the current player is the logged-in user
+    if (user && currentPlayerName === user.username) {
+      try {
+        await apiRequest("POST", "/api/scores", {
+          playerName: currentPlayerName,
+          points: 5,
+          userId: user.id,
+          gameType: 'truth-or-dare'
+        });
+      } catch (error) {
+        console.error("Failed to save score:", error);
+        toast({
+          title: "Fehler",
+          description: "Punkte konnten nicht gespeichert werden",
+          variant: "destructive",
+        });
+      }
     }
 
     setChallenge(null);
@@ -103,29 +110,31 @@ export default function TruthOrDare() {
 
   const handleSkipChallenge = async () => {
     const currentPlayerName = players[currentPlayer];
-    const currentScore = Math.max(0, (playerScores[currentPlayerName] || 0) - 3); // Minimum score is 0
+    const currentScore = Math.max(0, (playerScores[currentPlayerName] || 0) - 3);
     setPlayerScores({ ...playerScores, [currentPlayerName]: currentScore });
 
-    // Save updated score to database
-    try {
-      await apiRequest("POST", "/api/scores", {
-        playerName: currentPlayerName,
-        points: currentScore,
-        userId: user?.id,
-        gameType: 'truth-or-dare'
-      });
+    // Save updated score to database if the current player is the logged-in user
+    if (user && currentPlayerName === user.username) {
+      try {
+        await apiRequest("POST", "/api/scores", {
+          playerName: currentPlayerName,
+          points: -3,
+          userId: user.id,
+          gameType: 'truth-or-dare'
+        });
 
-      toast({
-        title: "Punktabzug",
-        description: "-3 Punkte für das Überspringen der Aufgabe",
-      });
-    } catch (error) {
-      console.error("Failed to save score:", error);
-      toast({
-        title: "Fehler",
-        description: "Punktabzug konnte nicht gespeichert werden",
-        variant: "destructive",
-      });
+        toast({
+          title: "Punktabzug",
+          description: "-3 Punkte für das Überspringen der Aufgabe",
+        });
+      } catch (error) {
+        console.error("Failed to save score:", error);
+        toast({
+          title: "Fehler",
+          description: "Punktabzug konnte nicht gespeichert werden",
+          variant: "destructive",
+        });
+      }
     }
 
     setChallenge(null);
@@ -196,13 +205,10 @@ export default function TruthOrDare() {
               Spieler hinzufügen ({players.length}/{playerCount})
             </h2>
             <div className="space-y-4">
-              {user && players.length === 0 && (
+              {user && !players.includes(user.username) && (
                 <Button
-                  onClick={() => {
-                    setNewPlayer(user.username);
-                    addPlayer();
-                  }}
-                  className="w-full bg-primary"
+                  onClick={handleAddCurrentUser}
+                  className="w-full bg-primary hover:bg-primary/90"
                 >
                   Als {user.username} spielen
                 </Button>
@@ -214,7 +220,7 @@ export default function TruthOrDare() {
                 />
               </div>
               <Button 
-                onClick={addPlayer}
+                onClick={() => addPlayer()}
                 className="w-full"
                 disabled={!newPlayer.trim()}
               >
