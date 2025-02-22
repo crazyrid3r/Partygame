@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { Question } from "@shared/schema";
+import { Edit2, Trash2 } from "lucide-react";
 
 const ADMIN_PASSWORD = 'party2025';
 
@@ -32,7 +33,7 @@ export default function Admin() {
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
 
   const { data: questions } = useQuery<Question[]>({
-    queryKey: ['/api/questions', selectedType, selectedMode],
+    queryKey: [`/api/questions/${selectedType}/${selectedMode}`],
     enabled: isAuthenticated,
   });
 
@@ -41,7 +42,7 @@ export default function Admin() {
       return apiRequest('POST', '/api/questions', question);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/questions'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/questions/${selectedType}/${selectedMode}`] });
       toast({
         title: "Erfolg",
         description: "Frage/Aufgabe wurde hinzugefügt",
@@ -55,7 +56,7 @@ export default function Admin() {
       return apiRequest('PATCH', `/api/questions/${id}`, question);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/questions'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/questions/${selectedType}/${selectedMode}`] });
       toast({
         title: "Erfolg",
         description: "Frage/Aufgabe wurde aktualisiert",
@@ -69,7 +70,7 @@ export default function Admin() {
       return apiRequest('DELETE', `/api/questions/${id}`, undefined);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/questions'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/questions/${selectedType}/${selectedMode}`] });
       toast({
         title: "Erfolg",
         description: "Frage/Aufgabe wurde gelöscht",
@@ -189,6 +190,7 @@ export default function Admin() {
                 value={newQuestion}
                 onChange={(e) => setNewQuestion(e.target.value)}
                 placeholder="Neue Frage oder Aufgabe eingeben"
+                onKeyDown={(e) => e.key === "Enter" && handleAddQuestion()}
               />
               <Button onClick={handleAddQuestion}>Hinzufügen</Button>
             </div>
@@ -233,14 +235,14 @@ export default function Admin() {
                           variant="outline"
                           onClick={() => setEditingQuestion(question)}
                         >
-                          Bearbeiten
+                          <Edit2 className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"
                           variant="destructive"
                           onClick={() => deleteQuestionMutation.mutate(question.id)}
                         >
-                          Löschen
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </>
                     )}
