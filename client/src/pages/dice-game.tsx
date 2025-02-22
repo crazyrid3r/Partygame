@@ -12,35 +12,61 @@ const rules = [
   "Rule maker",
 ];
 
+interface DiceResult {
+  value: number;
+  rule: string;
+}
+
 export default function DiceGame() {
   const [rolling, setRolling] = useState(false);
-  const [result, setResult] = useState<number | null>(null);
+  const [results, setResults] = useState<[DiceResult | null, DiceResult | null]>([null, null]);
 
   const rollDice = () => {
     setRolling(true);
     setTimeout(() => {
-      setResult(Math.floor(Math.random() * 6) + 1);
+      const dice1 = {
+        value: Math.floor(Math.random() * 6) + 1,
+        rule: rules[Math.floor(Math.random() * rules.length)]
+      };
+      const dice2 = {
+        value: Math.floor(Math.random() * 6) + 1,
+        rule: rules[Math.floor(Math.random() * rules.length)]
+      };
+      setResults([dice1, dice2]);
       setRolling(false);
     }, 1000);
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Dice Game</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">Würfelspiel</h1>
 
       <Card className="max-w-md mx-auto">
         <CardContent className="pt-6">
           <div className="flex flex-col items-center gap-6">
-            <Dice1
-              className={`w-24 h-24 text-primary ${
-                rolling ? "animate-spin" : ""
-              }`}
-            />
+            <div className="flex gap-8">
+              <Dice1
+                className={`w-24 h-24 text-primary ${
+                  rolling ? "animate-spin" : ""
+                }`}
+              />
+              <Dice1
+                className={`w-24 h-24 text-primary ${
+                  rolling ? "animate-spin" : ""
+                }`}
+              />
+            </div>
 
-            {result && (
-              <div className="text-center">
-                <p className="text-2xl font-bold mb-2">{result}</p>
-                <p className="text-lg">{rules[result - 1]}</p>
+            {results[0] && results[1] && (
+              <div className="text-center space-y-4">
+                <div>
+                  <p className="text-2xl font-bold mb-2">Würfel 1: {results[0].value}</p>
+                  <p className="text-lg">{results[0].rule}</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold mb-2">Würfel 2: {results[1].value}</p>
+                  <p className="text-lg">{results[1].rule}</p>
+                </div>
               </div>
             )}
 
@@ -50,7 +76,7 @@ export default function DiceGame() {
               disabled={rolling}
               className="w-full"
             >
-              {rolling ? "Rolling..." : "Roll Dice"}
+              {rolling ? "Würfeln..." : "Würfeln"}
             </Button>
           </div>
         </CardContent>
