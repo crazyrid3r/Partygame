@@ -9,6 +9,7 @@ import DiceGame from "@/pages/dice-game";
 import TruthOrDare from "@/pages/truth-or-dare";
 import StoryGenerator from "@/pages/story-generator";
 import Impressum from "@/pages/impressum";
+import Admin from "@/pages/admin";
 import { useState } from "react";
 import { LanguageContext, type Language, useTranslation } from "@/lib/i18n";
 import { SplashScreen } from "@/components/splash-screen";
@@ -26,13 +27,17 @@ function Router() {
           <Route path="/truth-or-dare" component={TruthOrDare} />
           <Route path="/story" component={StoryGenerator} />
           <Route path="/impressum" component={Impressum} />
+          <Route path="/admin" component={Admin} />
           <Route component={NotFound} />
         </Switch>
       </main>
       <footer className="py-4 border-t">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-4 text-center space-x-4">
           <Link href="/impressum" className="text-sm text-muted-foreground hover:text-primary">
             {t.nav.impressum}
+          </Link>
+          <Link href="/admin" className="text-sm text-muted-foreground hover:text-primary">
+            Admin
           </Link>
         </div>
       </footer>

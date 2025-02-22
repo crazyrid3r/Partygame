@@ -4,26 +4,61 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MessageSquare } from "lucide-react";
 
-const truths = [
-  "Was ist dein peinlichster Moment?",
-  "Was ist deine größte Angst?",
-  "Was war dein schlimmstes Date?",
-  // Weitere Fragen...
-];
+type GameMode = 'kids' | 'normal' | 'spicy';
 
-const dares = [
-  "Mache deinen besten Tanzschritt",
-  "Rufe jemanden an und singe für sie/ihn",
-  "Mache ein lustiges Selfie",
-  // Weitere Aufgaben...
-];
+const truthsByMode = {
+  kids: [
+    "Was ist dein Lieblingsessen?",
+    "Welches ist dein Lieblingstier?",
+    "Was möchtest du später mal werden?",
+    "Was war dein schönstes Geburtstagsgeschenk?",
+  ],
+  normal: [
+    "Was war dein peinlichster Moment?",
+    "Was ist deine größte Angst?",
+    "Was war dein schlimmstes Date?",
+    "Welches Geheimnis hast du noch nie jemandem erzählt?",
+  ],
+  spicy: [
+    "Wann hattest du deinen ersten Kuss?",
+    "Mit wem würdest du gerne mal auf ein Date gehen?",
+    "Was war dein wildestes Date?",
+    "Was war dein größter Party-Fauxpas?",
+  ],
+};
+
+const daresByMode = {
+  kids: [
+    "Tanze wie dein Lieblingstier",
+    "Sing dein Lieblingslied",
+    "Mach dein lustigstes Gesicht",
+    "Erzähle einen Witz",
+  ],
+  normal: [
+    "Mache deinen besten Tanzschritt",
+    "Rufe jemanden an und singe für sie/ihn",
+    "Mache ein lustiges Selfie",
+    "Imitiere eine berühmte Person",
+  ],
+  spicy: [
+    "Küsse die Person rechts von dir auf die Wange",
+    "Mache deinen verführerischsten Tanzschritt",
+    "Zeige dein peinlichstes Foto auf deinem Handy",
+    "Flirte mit der Person gegenüber",
+  ],
+};
 
 export default function TruthOrDare() {
+  const [gameMode, setGameMode] = useState<GameMode | null>(null);
   const [playerCount, setPlayerCount] = useState<number | null>(null);
   const [players, setPlayers] = useState<string[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [newPlayer, setNewPlayer] = useState("");
   const [challenge, setChallenge] = useState<string | null>(null);
+
+  const selectGameMode = (mode: GameMode) => {
+    setGameMode(mode);
+  };
 
   const handlePlayerCountSubmit = (count: number) => {
     if (count > 0) {
@@ -39,10 +74,44 @@ export default function TruthOrDare() {
   };
 
   const getChallenge = (type: "truth" | "dare") => {
-    const list = type === "truth" ? truths : dares;
+    if (!gameMode) return;
+
+    const list = type === "truth" ? truthsByMode[gameMode] : daresByMode[gameMode];
     setChallenge(list[Math.floor(Math.random() * list.length)]);
     setCurrentPlayer((current) => (current + 1) % players.length);
   };
+
+  if (!gameMode) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-md">
+        <Card>
+          <CardContent className="pt-6">
+            <h2 className="text-xl font-bold mb-4">Wähle einen Spielmodus</h2>
+            <div className="space-y-4">
+              <Button
+                onClick={() => selectGameMode('kids')}
+                className="w-full bg-green-500 hover:bg-green-600"
+              >
+                Kinder-Modus 👶
+              </Button>
+              <Button
+                onClick={() => selectGameMode('normal')}
+                className="w-full bg-blue-500 hover:bg-blue-600"
+              >
+                Normal 😊
+              </Button>
+              <Button
+                onClick={() => selectGameMode('spicy')}
+                className="w-full bg-red-500 hover:bg-red-600"
+              >
+                Spicy 🌶️
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (playerCount === null) {
     return (
@@ -105,6 +174,9 @@ export default function TruthOrDare() {
             <h2 className="text-xl font-bold">
               {players[currentPlayer]} ist dran
             </h2>
+            <p className="text-sm text-muted-foreground mt-2">
+              Modus: {gameMode === 'kids' ? 'Kinder' : gameMode === 'normal' ? 'Normal' : 'Spicy'} 
+            </p>
           </div>
 
           {challenge ? (
