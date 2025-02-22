@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ export default function TruthOrDare() {
   const [players, setPlayers] = useState<string[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [newPlayer, setNewPlayer] = useState("");
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [challenge, setChallenge] = useState<string | null>(null);
   const [playerScores, setPlayerScores] = useState<Record<string, number>>({});
   const { toast } = useToast();
@@ -46,8 +47,8 @@ export default function TruthOrDare() {
   const handlePlayerCountSubmit = (count: number) => {
     if (count > 0) {
       setPlayerCount(count);
-      setPlayers([]); 
-      setPlayerScores({}); 
+      setPlayers([]);
+      setPlayerScores({});
     }
   };
 
@@ -57,7 +58,7 @@ export default function TruthOrDare() {
       if (trimmedName) {
         setPlayers(prev => [...prev, trimmedName]);
         setPlayerScores(prev => ({ ...prev, [trimmedName]: 0 }));
-        setNewPlayer(""); 
+        setNewPlayer("");
       }
     }
   };
@@ -67,6 +68,17 @@ export default function TruthOrDare() {
       addPlayer(user.username);
     }
   };
+
+  // Update challenge text whenever language changes
+  useEffect(() => {
+    if (currentQuestion) {
+      setChallenge(
+        language === 'en' && currentQuestion.content_en
+          ? currentQuestion.content_en
+          : currentQuestion.content
+      );
+    }
+  }, [language, currentQuestion]);
 
   const handleChallenge = async (type: "truth" | "dare") => {
     if (!gameMode) return;
@@ -86,8 +98,12 @@ export default function TruthOrDare() {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
-    // Use the appropriate content based on the selected language
-    setChallenge(language === 'en' && randomQuestion.content_en ? randomQuestion.content_en : randomQuestion.content);
+    setCurrentQuestion(randomQuestion);
+    setChallenge(
+      language === 'en' && randomQuestion.content_en
+        ? randomQuestion.content_en
+        : randomQuestion.content
+    );
     setIsTransitioning(false);
   };
 
@@ -106,8 +122,8 @@ export default function TruthOrDare() {
         });
 
         toast({
-          title: "Punkte gespeichert",
-          description: "+5 Punkte für das Erfüllen der Aufgabe",
+          title: t.truthOrDare.complete,
+          description: `+5 ${t.truthOrDare.points}`,
         });
       } catch (error) {
         console.error("Failed to save score:", error);
@@ -120,6 +136,7 @@ export default function TruthOrDare() {
     }
 
     setChallenge(null);
+    setCurrentQuestion(null);
     setCurrentPlayer((current) => (current + 1) % players.length);
   };
 
@@ -138,8 +155,8 @@ export default function TruthOrDare() {
         });
 
         toast({
-          title: "Punktabzug",
-          description: "-3 Punkte für das Überspringen der Aufgabe",
+          title: t.truthOrDare.skip,
+          description: `-3 ${t.truthOrDare.points}`,
         });
       } catch (error) {
         console.error("Failed to save score:", error);
@@ -152,6 +169,7 @@ export default function TruthOrDare() {
     }
 
     setChallenge(null);
+    setCurrentQuestion(null);
     setCurrentPlayer((current) => (current + 1) % players.length);
   };
 
@@ -241,7 +259,7 @@ export default function TruthOrDare() {
                   currentNickname={newPlayer}
                 />
               </div>
-              <Button 
+              <Button
                 onClick={() => addPlayer()}
                 className="w-full"
                 disabled={!newPlayer.trim()}
