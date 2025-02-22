@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { Question } from "@shared/schema";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, Download, Upload } from "lucide-react";
 
 const ADMIN_PASSWORD = 'party2025';
 
@@ -118,6 +118,63 @@ export default function Admin() {
     });
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await fetch('/api/questions/export');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'questions.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      toast({
+        title: "Export fehlgeschlagen",
+        description: "Die Fragen konnten nicht exportiert werden",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files?.length) return;
+
+    const file = event.target.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/questions/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: [`/api/questions/${selectedType}/${selectedMode}`] });
+        toast({
+          title: "Import erfolgreich",
+          description: `${result.success} Fragen importiert, ${result.failed} fehlgeschlagen`,
+        });
+      } else {
+        throw new Error(result.error || 'Import fehlgeschlagen');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Import fehlgeschlagen",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+
+    // Reset das Datei-Input
+    event.target.value = '';
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -183,6 +240,34 @@ export default function Admin() {
                   <SelectItem value="spicy">Spicy</SelectItem>
                 </SelectContent>
               </Select>
+
+              <div className="flex gap-2 ml-auto">
+                <Button
+                  variant="outline"
+                  onClick={handleExport}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Export
+                </Button>
+                <label className="cursor-pointer">
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2"
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                  >
+                    <Upload className="w-4 h-4" />
+                    Import
+                  </Button>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept=".xlsx"
+                    onChange={handleImport}
+                    className="hidden"
+                  />
+                </label>
+              </div>
             </div>
 
             <div className="flex gap-2">

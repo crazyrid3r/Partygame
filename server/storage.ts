@@ -25,6 +25,7 @@ export interface IStorage {
   updateQuestion(id: number, question: Partial<InsertQuestion>): Promise<Question>;
   deleteQuestion(id: number): Promise<void>;
   getUserTotalPoints(userId: number): Promise<number>;
+  getAllQuestions(): Promise<Question[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -190,6 +191,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(scores.userId, userId));
 
     return userScores.reduce((total, score) => total + score.points, 0);
+  }
+
+  async getAllQuestions(): Promise<Question[]> {
+    return db
+      .select()
+      .from(questions)
+      .where(eq(questions.active, true));
   }
 }
 

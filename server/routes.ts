@@ -6,7 +6,7 @@ import path from "path";
 import { insertGameSchema, insertStorySchema, insertScoreSchema, insertQuestionSchema, insertUserSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
 import express from 'express';
-
+import XLSX from 'xlsx';
 
 // Konfiguriere multer für Bilduploads
 const multerStorage = multer.diskStorage({
@@ -201,6 +201,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get total points error:", error);
       res.status(500).json({ error: "Failed to get total points" });
+    }
+  });
+
+  // Export questions route
+  app.get("/api/questions/export", async (_req, res) => {
+    try {
+      // Hole alle aktiven Fragen
+      const allQuestions = await storage.getAllQuestions();
+
+      // Erstelle ein Arbeitsblatt
+      const worksheet = XLSX.utils.json_to_sheet(allQuestions.map(q => ({
+        type: q.type,
+        content: q.content,
+        mode: q.mode,
+        active: q.active ? 'true' : 'false'
+      })));
+
+      // Erstelle ein Arbeitsbuch und füge das Arbeitsblatt hinzu
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Questions");
+
+      // Schreibe die Excel-Datei in einen Buffer
+      const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+      // Sende die Datei
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename=questions.xlsx');
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error("Export error:", error);
+      res.status(500).json({ error: "Failed to export questions" });
+    }
+  });
+
+  // Import questions route
+  app.post("/api/questions/import", upload.single('file'), async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file provided" });
+    }
+
+    try {
+      // Lese die Excel-Datei
+      const workbook = XLSX.read(req.file.buffer);
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const questions = XLSX.utils.sheet_to_json(worksheet);
+
+      // Validiere und importiere die Fragen
+      const results = await Promise.all(
+        questions.map(async (q: any) => {
+          const question = {
+            type: q.type,
+            content: q.content,
+            mode: q.mode,
+            active: q.active === 'true'
+          };
+
+          try {
+            const parsed = insertQuestionSchema.safeParse(question);
+            if (parsed.success) {
+              return await storage.createQuestion(parsed.data);
+            }
+            return { error: "Invalid question format", question };
+          } catch (error) {
+            return { error: "Failed to import question", question };
+          }
+        })
+      );
+
+      res.json({
+        success: results.filter(r => !r.error).length,
+        failed: results.filter(r => r.error).length,
+        errors: results.filter(r => r.error)
+      });
+    } catch (error) {
+      console.error("Import error:", error);
+      res.status(500).json({ error: "Failed to import questions" });
     }
   });
 
