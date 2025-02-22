@@ -12,7 +12,12 @@ interface AuthContextType {
   register: (data: { username: string; password: string; email: string }) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  updateProfile: (data: { username?: string; email?: string }) => Promise<void>;
+  updateProfile: (data: { 
+    username?: string; 
+    email?: string;
+    bio?: string;
+    profileImage?: string;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -36,7 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { username?: string; email?: string }) => {
+    mutationFn: async (data: { 
+      username?: string; 
+      email?: string;
+      bio?: string;
+      profileImage?: string;
+    }) => {
       const response = await apiRequest("PATCH", "/api/user", data);
       if (!response.ok) {
         const error = await response.json();

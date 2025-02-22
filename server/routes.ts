@@ -1,14 +1,60 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import multer from "multer";
+import path from "path";
 import { insertGameSchema, insertStorySchema, insertScoreSchema, insertQuestionSchema, insertUserSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
+import express from 'express';
+
+
+// Konfiguriere multer für Bilduploads
+const multerStorage = multer.diskStorage({
+  destination: './uploads/profile-images',
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: multerStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB Limit
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      cb(new Error('Nur Bilder im Format JPEG, PNG oder GIF sind erlaubt'));
+      return;
+    }
+    cb(null, true);
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes and middleware
   setupAuth(app);
 
+  // Erstelle den Upload-Ordner, falls er nicht existiert
+  app.use(express.static('uploads'));
+  app.use('/uploads', express.static('uploads'));
+
+
   // User routes
+  app.post("/api/upload-profile-image", upload.single('image'), async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No image provided" });
+    }
+
+    const imageUrl = `/uploads/profile-images/${req.file.filename}`;
+    res.json({ imageUrl });
+  });
+
   app.patch("/api/user", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Not authenticated" });

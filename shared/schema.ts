@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull(),
   profileImage: text("profile_image"),
+  bio: text("bio"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -72,7 +73,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 // Schemas for insertion
 export const insertUserSchema = createInsertSchema(users)
-  .omit({ id: true, createdAt: true, profileImage: true })
+  .omit({ id: true, createdAt: true, profileImage: true, bio: true })
   .extend({
     password: z.string().min(6, "Password must be at least 6 characters"),
     email: z.string().email("Invalid email address"),
