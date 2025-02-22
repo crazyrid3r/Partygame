@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import type { Question } from "@shared/schema";
 
 const ADMIN_PASSWORD = 'party2025';
 
@@ -20,11 +23,59 @@ type GameMode = 'kids' | 'normal' | 'spicy';
 export default function Admin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [newQuestion, setNewQuestion] = useState("");
   const [selectedType, setSelectedType] = useState<QuestionType>('truth');
   const [selectedMode, setSelectedMode] = useState<GameMode>('normal');
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+
+  const { data: questions } = useQuery<Question[]>({
+    queryKey: ['/api/questions', selectedType, selectedMode],
+    enabled: isAuthenticated,
+  });
+
+  const addQuestionMutation = useMutation({
+    mutationFn: async (question: { type: string; mode: string; content: string }) => {
+      return apiRequest('POST', '/api/questions', question);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/questions'] });
+      toast({
+        title: "Erfolg",
+        description: "Frage/Aufgabe wurde hinzugefügt",
+      });
+      setNewQuestion("");
+    },
+  });
+
+  const updateQuestionMutation = useMutation({
+    mutationFn: async ({ id, ...question }: { id: number; content: string }) => {
+      return apiRequest('PATCH', `/api/questions/${id}`, question);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/questions'] });
+      toast({
+        title: "Erfolg",
+        description: "Frage/Aufgabe wurde aktualisiert",
+      });
+      setEditingQuestion(null);
+    },
+  });
+
+  const deleteQuestionMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest('DELETE', `/api/questions/${id}`, undefined);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/questions'] });
+      toast({
+        title: "Erfolg",
+        description: "Frage/Aufgabe wurde gelöscht",
+      });
+    },
+  });
 
   const handleLogin = () => {
     if (password === ADMIN_PASSWORD) {
@@ -52,12 +103,18 @@ export default function Admin() {
       return;
     }
 
-    // Hier später: Frage zur Datenbank hinzufügen
-    toast({
-      title: "Erfolg",
-      description: "Frage/Aufgabe wurde hinzugefügt",
+    addQuestionMutation.mutate({
+      type: selectedType,
+      mode: selectedMode,
+      content: newQuestion.trim(),
     });
-    setNewQuestion("");
+  };
+
+  const handleUpdateQuestion = (question: Question) => {
+    updateQuestionMutation.mutate({
+      id: question.id,
+      content: editingQuestion?.content || question.content,
+    });
   };
 
   if (!isAuthenticated) {
@@ -96,7 +153,7 @@ export default function Admin() {
       <Card className="max-w-2xl mx-auto">
         <CardContent className="pt-6">
           <h2 className="text-2xl font-bold mb-6">Fragen und Aufgaben verwalten</h2>
-          
+
           <div className="space-y-6">
             <div className="flex gap-4">
               <Select
@@ -136,7 +193,61 @@ export default function Admin() {
               <Button onClick={handleAddQuestion}>Hinzufügen</Button>
             </div>
 
-            {/* Hier später: Liste der vorhandenen Fragen/Aufgaben mit Bearbeitungsmöglichkeit */}
+            <div className="space-y-4">
+              {questions?.map((question) => (
+                <div
+                  key={question.id}
+                  className="flex items-center justify-between p-4 bg-muted rounded-lg"
+                >
+                  {editingQuestion?.id === question.id ? (
+                    <Input
+                      value={editingQuestion.content}
+                      onChange={(e) =>
+                        setEditingQuestion({ ...editingQuestion, content: e.target.value })
+                      }
+                    />
+                  ) : (
+                    <p>{question.content}</p>
+                  )}
+                  <div className="flex gap-2">
+                    {editingQuestion?.id === question.id ? (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => handleUpdateQuestion(question)}
+                        >
+                          Speichern
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditingQuestion(null)}
+                        >
+                          Abbrechen
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditingQuestion(question)}
+                        >
+                          Bearbeiten
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => deleteQuestionMutation.mutate(question.id)}
+                        >
+                          Löschen
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="mt-8">

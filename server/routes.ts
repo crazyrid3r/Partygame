@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGameSchema, insertStorySchema, insertScoreSchema } from "@shared/schema";
+import { insertGameSchema, insertStorySchema, insertScoreSchema, insertQuestionSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Game routes
@@ -25,13 +25,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(game);
   });
 
+  // Question routes
+  app.post("/api/questions", async (req, res) => {
+    const parsed = insertQuestionSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Invalid question data" });
+    }
+    const question = await storage.createQuestion(parsed.data);
+    res.json(question);
+  });
+
+  app.get("/api/questions/:type/:mode", async (req, res) => {
+    const { type, mode } = req.params;
+    if (!['truth', 'dare'].includes(type) || !['kids', 'normal', 'spicy'].includes(mode)) {
+      return res.status(400).json({ error: "Invalid type or mode" });
+    }
+    const questions = await storage.getQuestions(type as 'truth' | 'dare', mode as 'kids' | 'normal' | 'spicy');
+    res.json(questions);
+  });
+
+  app.patch("/api/questions/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const parsed = insertQuestionSchema.partial().safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Invalid question data" });
+    }
+    const question = await storage.updateQuestion(id, parsed.data);
+    res.json(question);
+  });
+
+  app.delete("/api/questions/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    await storage.deleteQuestion(id);
+    res.status(204).send();
+  });
+
   // Story routes
   app.post("/api/stories", async (req, res) => {
     const parsed = insertStorySchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ error: "Invalid story data" });
     }
-
     const story = await storage.createStory(parsed.data);
     res.json(story);
   });
