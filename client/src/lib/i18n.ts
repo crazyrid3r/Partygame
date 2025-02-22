@@ -22,20 +22,13 @@ export const translations = {
         description: 'Wähle weise zwischen Wahrheit und Pflicht'
       },
       storyGenerator: {
-        title: 'Story Generator',
-        description: 'Erstelle gemeinsam eine Geschichte'
+        title: 'Story Generator (Coming Soon)',
+        description: 'Erstelle gemeinsam eine Geschichte - Bald verfügbar!'
       }
     },
     impressum: {
       title: 'Impressum',
       contact: 'Kontakt'
-    },
-    diceGame: {
-      title: 'Würfelspiel',
-      dice: 'Würfel',
-      sum: 'Summe',
-      roll: 'Würfeln',
-      rolling: 'Würfeln...'
     },
     truthOrDare: {
       title: 'Wahrheit oder Pflicht',
@@ -77,20 +70,13 @@ export const translations = {
         description: 'Choose wisely between truth and dare'
       },
       storyGenerator: {
-        title: 'Story Generator',
-        description: 'Create a story together'
+        title: 'Story Generator (Coming Soon)',
+        description: 'Create a story together - Available soon!'
       }
     },
     impressum: {
       title: 'Legal Notice',
       contact: 'Contact'
-    },
-    diceGame: {
-      title: 'Dice Game',
-      dice: 'Dice',
-      sum: 'Sum',
-      roll: 'Roll',
-      rolling: 'Rolling...'
     },
     truthOrDare: {
       title: 'Truth or Dare',

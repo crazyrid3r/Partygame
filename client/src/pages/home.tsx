@@ -30,7 +30,9 @@ export default function Home() {
           title={t.home.storyGenerator.title}
           description={t.home.storyGenerator.description}
           path="/story"
-          icon={<Feather className="w-8 h-8 text-primary" />}
+          icon={<Feather className="w-8 h-8 text-muted-foreground" />}
+          disabled
+          className="opacity-70"
         />
       </div>
     </div>
