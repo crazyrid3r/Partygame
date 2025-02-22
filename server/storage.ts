@@ -119,9 +119,15 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("Fetching high scores...");
       const result = await db
-        .select()
+        .select({
+          id: scores.id,
+          userId: scores.userId,
+          playerName: scores.playerName,
+          points: scores.points,
+          gameType: scores.gameType,
+          createdAt: scores.createdAt
+        })
         .from(scores)
-        .leftJoin(users, eq(scores.userId, users.id))
         .orderBy([
           { column: scores.points, order: "desc" },
           { column: scores.createdAt, order: "desc" }
@@ -130,14 +136,13 @@ export class DatabaseStorage implements IStorage {
 
       console.log("High scores query result:", result);
 
-      // Map the result to the expected Score type
-      return result.map(row => ({
-        id: row.scores.id,
-        userId: row.scores.userId,
-        playerName: row.users?.username || row.scores.playerName,
-        points: row.scores.points,
-        gameType: row.scores.gameType || 'Unbekannt',
-        createdAt: row.scores.createdAt
+      return result.map(score => ({
+        id: score.id,
+        userId: score.userId,
+        playerName: score.playerName,
+        points: score.points,
+        gameType: score.gameType || 'Unbekannt',
+        createdAt: score.createdAt
       }));
     } catch (error) {
       console.error("Error fetching high scores:", error);
