@@ -3,10 +3,11 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/src/main.tsx',
-  '/src/index.css'
+  '/assets/index.js',
+  '/assets/index.css'
 ];
 
+// Cache static assets on install
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -14,13 +15,29 @@ self.addEventListener('install', (event) => {
   );
 });
 
+// Network first, falling back to cache strategy
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => response || fetch(event.request))
+    fetch(event.request)
+      .then(response => {
+        // If we got a valid response, clone it and update the cache
+        if (response.ok) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+        }
+        return response;
+      })
+      .catch(() => {
+        // If network request fails, try to get it from cache
+        return caches.match(event.request);
+      })
   );
 });
 
+// Clean up old caches on activation
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
