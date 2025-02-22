@@ -72,12 +72,16 @@ export default function ProfilePage() {
         updates.bio = formData.bio;
       }
       if (imageUrl !== user.profileImage) {
-        updates.profileImage = imageUrl;
+        updates.profileImage = imageUrl || "";
       }
 
       // Nur aktualisieren, wenn es tatsächlich Änderungen gibt
       if (Object.keys(updates).length > 0) {
         await updateProfile(updates);
+        toast({
+          title: "Erfolg",
+          description: "Profil wurde aktualisiert",
+        });
       }
 
       setIsEditing(false);
