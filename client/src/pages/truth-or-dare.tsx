@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Question } from "@shared/schema";
 import { NicknameGenerator } from "@/components/nickname-generator";
 import { useAuth } from "@/hooks/use-auth";
+import { LoadingScreen } from "@/components/loading-screen";
 
 type GameMode = 'kids' | 'normal' | 'spicy';
 
@@ -22,14 +23,14 @@ export default function TruthOrDare() {
   const [challenge, setChallenge] = useState<string | null>(null);
   const [playerScores, setPlayerScores] = useState<Record<string, number>>({});
   const { toast } = useToast();
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Lade Fragen aus der Datenbank wenn der Spielmodus ausgewählt wurde
-  const { data: truthQuestions } = useQuery<Question[]>({
+  const { data: truthQuestions, isLoading: truthLoading } = useQuery<Question[]>({
     queryKey: [`/api/questions/truth/${gameMode}`],
     enabled: !!gameMode,
   });
 
-  const { data: dareQuestions } = useQuery<Question[]>({
+  const { data: dareQuestions, isLoading: dareLoading } = useQuery<Question[]>({
     queryKey: [`/api/questions/dare/${gameMode}`],
     enabled: !!gameMode,
   });
@@ -41,8 +42,8 @@ export default function TruthOrDare() {
   const handlePlayerCountSubmit = (count: number) => {
     if (count > 0) {
       setPlayerCount(count);
-      setPlayers([]); // Reset players when changing count
-      setPlayerScores({}); // Reset scores
+      setPlayers([]); 
+      setPlayerScores({}); 
     }
   };
 
@@ -52,7 +53,7 @@ export default function TruthOrDare() {
       if (trimmedName) {
         setPlayers(prev => [...prev, trimmedName]);
         setPlayerScores(prev => ({ ...prev, [trimmedName]: 0 }));
-        setNewPlayer(""); // Reset input after adding
+        setNewPlayer(""); 
       }
     }
   };
@@ -66,6 +67,7 @@ export default function TruthOrDare() {
   const handleChallenge = async (type: "truth" | "dare") => {
     if (!gameMode) return;
 
+    setIsTransitioning(true);
     const questions = type === "truth" ? truthQuestions : dareQuestions;
     if (!questions?.length) {
       toast({
@@ -73,11 +75,15 @@ export default function TruthOrDare() {
         description: `Keine ${type === "truth" ? "Wahrheit" : "Pflicht"}-Fragen für diesen Modus verfügbar.`,
         variant: "destructive",
       });
+      setIsTransitioning(false);
       return;
     }
 
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
     setChallenge(randomQuestion.content);
+    setIsTransitioning(false);
   };
 
   const handleCompleteChallenge = async () => {
@@ -85,7 +91,6 @@ export default function TruthOrDare() {
     const currentScore = (playerScores[currentPlayerName] || 0) + 5;
     setPlayerScores({ ...playerScores, [currentPlayerName]: currentScore });
 
-    // Save score to database if the current player is the logged-in user
     if (user && currentPlayerName === user.username) {
       try {
         await apiRequest("POST", "/api/scores", {
@@ -113,7 +118,6 @@ export default function TruthOrDare() {
     const currentScore = Math.max(0, (playerScores[currentPlayerName] || 0) - 3);
     setPlayerScores({ ...playerScores, [currentPlayerName]: currentScore });
 
-    // Save updated score to database if the current player is the logged-in user
     if (user && currentPlayerName === user.username) {
       try {
         await apiRequest("POST", "/api/scores", {
@@ -140,6 +144,14 @@ export default function TruthOrDare() {
     setChallenge(null);
     setCurrentPlayer((current) => (current + 1) % players.length);
   };
+
+  if (truthLoading || dareLoading) {
+    return <LoadingScreen message="Lade Fragen..." />;
+  }
+
+  if (isTransitioning) {
+    return <LoadingScreen message="Wähle eine Aufgabe..." />;
+  }
 
   if (!gameMode) {
     return (
