@@ -1,6 +1,6 @@
 import { Game, Story, Score, Question, User, InsertGame, InsertStory, InsertScore, InsertQuestion, InsertUser, GameState } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { games, stories, scores, questions, users } from "@shared/schema";
 import { sql } from 'drizzle-orm';
 
@@ -121,7 +121,7 @@ export class DatabaseStorage implements IStorage {
         })
         .from(scores)
         .groupBy(scores.playerName)
-        .orderBy(sql`SUM(${scores.points})`.desc())
+        .orderBy(desc(sql`SUM(${scores.points})`))
         .limit(10);
 
       if (!result || result.length === 0) {
