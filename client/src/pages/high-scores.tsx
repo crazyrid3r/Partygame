@@ -51,7 +51,7 @@ export default function HighScores() {
                   <div>
                     <span className="font-semibold">{score.playerName}</span>
                     <span className="text-sm text-muted-foreground ml-2">
-                      ({score.gameType})
+                      ({score.gameType || 'Unbekannt'})
                     </span>
                   </div>
                 </div>

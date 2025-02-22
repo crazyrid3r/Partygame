@@ -116,21 +116,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getHighScores(): Promise<Score[]> {
-    const result = await db
-      .select()
+    return db
+      .select({
+        id: scores.id,
+        userId: scores.userId,
+        playerName: scores.playerName,
+        points: scores.points,
+        gameType: scores.gameType,
+        createdAt: scores.createdAt
+      })
       .from(scores)
-      .leftJoin(users, eq(scores.userId, users.id))
       .orderBy({ points: 'desc' })
       .limit(10);
-
-    return result.map(score => ({
-      id: score.id,
-      userId: score.userId,
-      playerName: score.username || score.playerName,
-      points: score.points,
-      gameType: score.gameType || 'unknown',
-      createdAt: score.createdAt
-    }));
   }
 
   async createQuestion(question: InsertQuestion): Promise<Question> {
