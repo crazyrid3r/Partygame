@@ -39,6 +39,7 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // Handle API errors
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -53,7 +54,10 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    app.use(express.static('dist/public'));
+    app.get('*', (_req, res) => {
+      res.sendFile('dist/public/index.html', { root: '.' });
+    });
   }
 
   // ALWAYS serve the app on port 5000
