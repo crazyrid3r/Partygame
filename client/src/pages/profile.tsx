@@ -17,7 +17,6 @@ export default function ProfilePage() {
   const { user, updateProfile } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     username: user?.username || "",
     email: user?.email || "",
@@ -39,9 +38,7 @@ export default function ProfilePage() {
         });
         return;
       }
-      setSelectedImage(file);
 
-      // Sofort hochladen wenn ein Bild ausgewählt wurde
       const formData = new FormData();
       formData.append('image', file);
 
@@ -74,30 +71,30 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       const updates: Record<string, string> = {};
 
-      // Prüfe jedes Feld einzeln
-      if (formData.username && formData.username !== user.username) {
+      if (formData.username !== user.username) {
         updates.username = formData.username;
       }
-      if (formData.email && formData.email !== user.email) {
+      if (formData.email !== user.email) {
         updates.email = formData.email;
       }
       if (formData.bio !== user.bio) {
         updates.bio = formData.bio;
       }
 
-      // Nur aktualisieren wenn es Änderungen gibt
       if (Object.keys(updates).length > 0) {
         await updateProfile(updates);
+        setIsEditing(false);
         toast({
           title: "Erfolg",
           description: "Profil wurde aktualisiert",
         });
+      } else {
+        setIsEditing(false);
       }
-
-      setIsEditing(false);
     } catch (error: any) {
       toast({
         title: "Fehler",
@@ -105,6 +102,24 @@ export default function ProfilePage() {
         variant: "destructive",
       });
     }
+  };
+
+  const startEditing = () => {
+    setFormData({
+      username: user.username,
+      email: user.email,
+      bio: user.bio || "",
+    });
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setFormData({
+      username: user.username,
+      email: user.email,
+      bio: user.bio || "",
+    });
+    setIsEditing(false);
   };
 
   return (
@@ -192,14 +207,7 @@ export default function ProfilePage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setFormData({
-                        username: user.username,
-                        email: user.email,
-                        bio: user.bio || "",
-                      });
-                    }}
+                    onClick={cancelEditing}
                   >
                     Abbrechen
                   </Button>
@@ -207,7 +215,7 @@ export default function ProfilePage() {
               ) : (
                 <Button
                   type="button"
-                  onClick={() => setIsEditing(true)}
+                  onClick={startEditing}
                 >
                   Bearbeiten
                 </Button>
