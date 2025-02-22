@@ -8,7 +8,8 @@ export const translations = {
       home: 'Hauptmenü',
       diceGame: 'Würfelspiel',
       truthOrDare: 'Wahrheit oder Pflicht',
-      storyGenerator: 'Story Generator'
+      storyGenerator: 'Story Generator',
+      impressum: 'Impressum'
     },
     home: {
       title: 'Trinkspiele',
@@ -24,6 +25,10 @@ export const translations = {
         title: 'Story Generator',
         description: 'Erstelle gemeinsam eine Geschichte'
       }
+    },
+    impressum: {
+      title: 'Impressum',
+      contact: 'Kontakt'
     },
     diceGame: {
       title: 'Würfelspiel',
@@ -50,7 +55,8 @@ export const translations = {
       home: 'Main Menu',
       diceGame: 'Dice Game',
       truthOrDare: 'Truth or Dare',
-      storyGenerator: 'Story Generator'
+      storyGenerator: 'Story Generator',
+      impressum: 'Legal Notice'
     },
     home: {
       title: 'Drinking Games',
@@ -66,6 +72,10 @@ export const translations = {
         title: 'Story Generator',
         description: 'Create a story together'
       }
+    },
+    impressum: {
+      title: 'Legal Notice',
+      contact: 'Contact'
     },
     diceGame: {
       title: 'Dice Game',
