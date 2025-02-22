@@ -106,15 +106,12 @@ export default function ProfilePage() {
   };
 
   const startEditing = () => {
-    setFormData({
-      username: user.username,
-      email: user.email,
-      bio: user.bio || "",
-    });
+    // Nur UI-Status ändern, kein API-Aufruf
     setIsEditing(true);
   };
 
   const cancelEditing = () => {
+    // Formular zurücksetzen und Bearbeitungsmodus beenden
     setFormData({
       username: user.username,
       email: user.email,

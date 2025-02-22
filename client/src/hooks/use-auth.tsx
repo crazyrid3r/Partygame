@@ -47,6 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       bio?: string;
       profileImage?: string;
     }) => {
+      // Nur wenn es tatsächlich Daten zum Aktualisieren gibt
+      if (Object.keys(data).length === 0) {
+        return user;
+      }
+
       const response = await apiRequest("PATCH", "/api/user", data);
       if (!response.ok) {
         const error = await response.json();
