@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { MessageSquare } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { Question } from "@shared/schema";
 
 type GameMode = 'kids' | 'normal' | 'spicy';
@@ -17,6 +18,7 @@ export default function TruthOrDare() {
   const [newPlayer, setNewPlayer] = useState("");
   const [challenge, setChallenge] = useState<string | null>(null);
   const [playerScores, setPlayerScores] = useState<Record<string, number>>({});
+  const { toast } = useToast();
 
   // Lade Fragen aus der Datenbank wenn der Spielmodus ausgewählt wurde
   const { data: truthQuestions } = useQuery<Question[]>({
@@ -46,11 +48,18 @@ export default function TruthOrDare() {
     }
   };
 
-  const getChallenge = async (type: "truth" | "dare") => {
+  const handleChallenge = async (type: "truth" | "dare") => {
     if (!gameMode) return;
 
     const questions = type === "truth" ? truthQuestions : dareQuestions;
-    if (!questions?.length) return;
+    if (!questions?.length) {
+      toast({
+        title: "Fehler",
+        description: `Keine ${type === "truth" ? "Wahrheit" : "Pflicht"}-Fragen für diesen Modus verfügbar.`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
     setChallenge(randomQuestion.content);
@@ -68,6 +77,11 @@ export default function TruthOrDare() {
       });
     } catch (error) {
       console.error("Failed to save score:", error);
+      toast({
+        title: "Fehler",
+        description: "Punkte konnten nicht gespeichert werden",
+        variant: "destructive",
+      });
     }
 
     setCurrentPlayer((current) => (current + 1) % players.length);
@@ -193,13 +207,13 @@ export default function TruthOrDare() {
             <div className="flex gap-4">
               <Button
                 className="flex-1"
-                onClick={() => getChallenge("truth")}
+                onClick={() => handleChallenge("truth")}
               >
                 Wahrheit
               </Button>
               <Button
                 className="flex-1"
-                onClick={() => getChallenge("dare")}
+                onClick={() => handleChallenge("dare")}
               >
                 Pflicht
               </Button>
