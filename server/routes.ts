@@ -1,12 +1,32 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGameSchema, insertStorySchema, insertScoreSchema, insertQuestionSchema } from "@shared/schema";
+import { insertGameSchema, insertStorySchema, insertScoreSchema, insertQuestionSchema, insertUserSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes and middleware
   setupAuth(app);
+
+  // User routes
+  app.patch("/api/user", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const parsed = insertUserSchema.partial().safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Invalid user data" });
+    }
+
+    try {
+      const updatedUser = await storage.updateUser(req.user.id, parsed.data);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Update user error:", error);
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
 
   // Game routes
   app.post("/api/games", async (req, res) => {

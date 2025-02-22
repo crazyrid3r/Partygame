@@ -8,6 +8,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
 
   // Existing methods
   createGame(game: InsertGame): Promise<Game>;
@@ -41,7 +42,16 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  // Existing methods remain unchanged
+  async updateUser(id: number, user: Partial<InsertUser>): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(user)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+
+  // Existing methods
   async createGame(game: InsertGame): Promise<Game> {
     const [newGame] = await db.insert(games).values(game).returning();
     return newGame;

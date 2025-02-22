@@ -12,6 +12,7 @@ interface AuthContextType {
   register: (data: { username: string; password: string; email: string }) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  updateProfile: (data: { username?: string; email?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -19,11 +20,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
-  const {
-    data: user,
-    isLoading,
-    error,
-  } = useQuery<User>({
+  const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ["/api/user"],
     queryFn: async () => {
       try {
@@ -35,6 +32,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         return null;
       }
+    },
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: { username?: string; email?: string }) => {
+      const response = await apiRequest("PATCH", "/api/user", data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Profilaktualisierung fehlgeschlagen");
+      }
+      return response.json();
+    },
+    onSuccess: (updatedUser: User) => {
+      queryClient.setQueryData(["/api/user"], updatedUser);
+      toast({
+        title: "Erfolg",
+        description: "Profil wurde aktualisiert",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Fehler",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -131,13 +153,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user: user || null,
+        user: user ?? null,
         isLoading,
-        error: error as Error | null,
+        error,
         login: loginMutation.mutateAsync,
         register: registerMutation.mutateAsync,
         logout: logoutMutation.mutateAsync,
         resetPassword: resetPasswordMutation.mutateAsync,
+        updateProfile: updateProfileMutation.mutateAsync,
       }}
     >
       {children}

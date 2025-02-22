@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { User } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -28,10 +28,9 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // TODO: Implement profile update functionality
-      toast({
-        title: "Erfolg",
-        description: "Profil wurde aktualisiert",
+      await updateProfile({
+        username: formData.username !== user.username ? formData.username : undefined,
+        email: formData.email !== user.email ? formData.email : undefined,
       });
       setIsEditing(false);
     } catch (error: any) {
