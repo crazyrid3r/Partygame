@@ -2,6 +2,7 @@ import { Game, Story, Score, Question, User, InsertGame, InsertStory, InsertScor
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { games, stories, scores, questions, users } from "@shared/schema";
+import { sql } from 'drizzle-orm';
 
 export interface IStorage {
   // User management
@@ -123,12 +124,11 @@ export class DatabaseStorage implements IStorage {
           id: scores.id,
           userId: scores.userId,
           playerName: scores.playerName,
-          points: scores.points,
-          gameType: scores.gameType,
-          createdAt: scores.createdAt
+          points: sql<number>`SUM(${scores.points})`.mapWith(Number),
         })
         .from(scores)
-        .orderBy(scores.points, 'desc')
+        .groupBy(scores.playerName, scores.id, scores.userId)
+        .orderBy(sql`SUM(${scores.points})`, 'desc')
         .limit(10);
 
       console.log("High scores query result:", result);
@@ -137,7 +137,14 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
 
-      return result;
+      return result.map(score => ({
+        id: score.id,
+        userId: score.userId,
+        playerName: score.playerName,
+        points: score.points,
+        gameType: 'Gesamt', // Wir zeigen nur die Gesamtpunktzahl an
+        createdAt: new Date() // Nicht relevant für die Gesamtpunktzahl
+      }));
     } catch (error) {
       console.error("Error fetching high scores:", error);
       throw new Error("Failed to fetch high scores");
