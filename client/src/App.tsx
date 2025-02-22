@@ -48,7 +48,7 @@ function Router() {
           <Route path="/truth-or-dare" component={TruthOrDare} />
           <Route path="/story" component={StoryGenerator} />
           <Route path="/impressum" component={Impressum} />
-          <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
+          <Route path="/admin" component={Admin} />
           <Route path="/high-scores" component={HighScores} />
           <Route path="/profile" component={() => <ProtectedRoute component={ProfilePage} />} />
           <Route component={NotFound} />
