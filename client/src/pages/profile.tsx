@@ -16,7 +16,6 @@ import { User, Upload } from "lucide-react";
 export default function ProfilePage() {
   const { user, updateProfile } = useAuth();
   const { toast } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     username: user?.username || "",
     email: user?.email || "",
@@ -94,8 +93,6 @@ export default function ProfilePage() {
           description: "Profil wurde aktualisiert",
         });
       }
-
-      setIsEditing(false);
     } catch (error: any) {
       toast({
         title: "Fehler",
@@ -103,21 +100,6 @@ export default function ProfilePage() {
         variant: "destructive",
       });
     }
-  };
-
-  const startEditing = () => {
-    // Nur UI-Status ändern, kein API-Aufruf
-    setIsEditing(true);
-  };
-
-  const cancelEditing = () => {
-    // Formular zurücksetzen und Bearbeitungsmodus beenden
-    setFormData({
-      username: user.username,
-      email: user.email,
-      bio: user.bio || "",
-    });
-    setIsEditing(false);
   };
 
   return (
@@ -170,7 +152,6 @@ export default function ProfilePage() {
                 onChange={(e) =>
                   setFormData({ ...formData, username: e.target.value })
                 }
-                disabled={!isEditing}
                 placeholder="Dein Benutzername"
               />
             </div>
@@ -182,7 +163,6 @@ export default function ProfilePage() {
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
-                disabled={!isEditing}
                 placeholder="deine@email.de"
               />
             </div>
@@ -193,31 +173,12 @@ export default function ProfilePage() {
                 onChange={(e) =>
                   setFormData({ ...formData, bio: e.target.value })
                 }
-                disabled={!isEditing}
                 placeholder="Erzähle etwas über dich..."
                 className="min-h-[100px] resize-none"
               />
             </div>
-            <div className="pt-4 space-x-4">
-              {isEditing ? (
-                <>
-                  <Button type="submit">Speichern</Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={cancelEditing}
-                  >
-                    Abbrechen
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={startEditing}
-                >
-                  Bearbeiten
-                </Button>
-              )}
+            <div className="pt-4">
+              <Button type="submit">Speichern</Button>
             </div>
           </form>
         </CardContent>
