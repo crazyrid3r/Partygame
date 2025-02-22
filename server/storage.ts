@@ -134,7 +134,16 @@ export class DatabaseStorage implements IStorage {
           { column: scores.points, order: "desc" },
           { column: scores.createdAt, order: "desc" }
         ])
-        .limit(10);
+        .limit(10)
+        .$castTo<{
+          id: number;
+          userId: number | null;
+          playerName: string;
+          points: number;
+          gameType: string;
+          createdAt: Date;
+          username: string | null;
+        }>();
 
       console.log("High scores query result:", result);
 
