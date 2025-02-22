@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,11 +10,15 @@ import type { Question } from "@shared/schema";
 import { NicknameGenerator } from "@/components/nickname-generator";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingScreen } from "@/components/loading-screen";
+import { useTranslation } from "@/lib/i18n";
+import { LanguageContext } from "@/lib/i18n";
 
 type GameMode = 'kids' | 'normal' | 'spicy';
 
 export default function TruthOrDare() {
   const { user } = useAuth();
+  const { language } = useContext(LanguageContext);
+  const t = useTranslation();
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
   const [playerCount, setPlayerCount] = useState<number | null>(null);
   const [players, setPlayers] = useState<string[]>([]);
@@ -82,7 +86,8 @@ export default function TruthOrDare() {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
-    setChallenge(randomQuestion.content);
+    // Use the appropriate content based on the selected language
+    setChallenge(language === 'en' && randomQuestion.content_en ? randomQuestion.content_en : randomQuestion.content);
     setIsTransitioning(false);
   };
 
@@ -271,10 +276,10 @@ export default function TruthOrDare() {
         <CardContent className="pt-6">
           <div className="text-center mb-6">
             <h2 className="text-xl font-bold">
-              {players[currentPlayer]} ist dran
+              {players[currentPlayer]} {t.truthOrDare.turn}
             </h2>
             <p className="text-sm text-muted-foreground mt-2">
-              Modus: {gameMode === 'kids' ? 'Kinder' : gameMode === 'normal' ? 'Normal' : 'Spicy'}
+              {t.truthOrDare.mode}: {gameMode === 'kids' ? t.truthOrDare.kids : gameMode === 'normal' ? t.truthOrDare.normal : t.truthOrDare.spicy}
             </p>
           </div>
 
@@ -287,17 +292,17 @@ export default function TruthOrDare() {
                   className="w-full"
                   onClick={handleCompleteChallenge}
                 >
-                  Aufgabe erledigt (+5 Punkte)
+                  {t.truthOrDare.complete} (+5 {t.truthOrDare.points})
                 </Button>
                 <Button
                   variant="destructive"
                   className="w-full"
                   onClick={handleSkipChallenge}
                 >
-                  Mach ich nicht (-3 Punkte)
+                  {t.truthOrDare.skip} (-3 {t.truthOrDare.points})
                 </Button>
                 <p className="text-sm font-semibold">
-                  Aktuelle Punkte: {playerScores[players[currentPlayer]] || 0}
+                  {t.truthOrDare.currentPoints}: {playerScores[players[currentPlayer]] || 0}
                 </p>
               </div>
             </div>
@@ -308,13 +313,13 @@ export default function TruthOrDare() {
                 className="flex-1"
                 onClick={() => handleChallenge("truth")}
               >
-                Wahrheit
+                {t.truthOrDare.truth}
               </Button>
               <Button
                 className="flex-1"
                 onClick={() => handleChallenge("dare")}
               >
-                Pflicht
+                {t.truthOrDare.dare}
               </Button>
             </div>
           )}

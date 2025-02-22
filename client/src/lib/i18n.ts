@@ -47,7 +47,15 @@ export const translations = {
       turn: 'ist dran',
       nextPlayer: 'Nächster Spieler',
       truth: 'Wahrheit',
-      dare: 'Pflicht'
+      dare: 'Pflicht',
+      complete: 'Aufgabe erledigt',
+      skip: 'Überspringen',
+      points: 'Punkte',
+      currentPoints: 'Aktuelle Punkte',
+      mode: 'Modus',
+      kids: 'Kinder',
+      normal: 'Normal',
+      spicy: 'Spicy'
     }
   },
   en: {
@@ -94,7 +102,15 @@ export const translations = {
       turn: "'s turn",
       nextPlayer: 'Next Player',
       truth: 'Truth',
-      dare: 'Dare'
+      dare: 'Dare',
+      complete: 'Challenge completed',
+      skip: 'Skip challenge',
+      points: 'points',
+      currentPoints: 'Current Points',
+      mode: 'Mode',
+      kids: 'Kids',
+      normal: 'Normal',
+      spicy: 'Spicy'
     }
   }
 };
