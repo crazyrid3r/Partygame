@@ -83,8 +83,36 @@ export default function TruthOrDare() {
         variant: "destructive",
       });
     }
+  };
 
+  const handleSkipChallenge = async () => {
+    const currentPlayerName = players[currentPlayer];
+    const currentScore = Math.max(0, (playerScores[currentPlayerName] || 0) - 3); // Minimum score is 0
+    setPlayerScores({ ...playerScores, [currentPlayerName]: currentScore });
+
+    // Save updated score to database
+    try {
+      await apiRequest("POST", "/api/scores", {
+        playerName: currentPlayerName,
+        points: currentScore
+      });
+
+      toast({
+        title: "Punktabzug",
+        description: "-3 Punkte für das Überspringen der Aufgabe",
+      });
+    } catch (error) {
+      console.error("Failed to save score:", error);
+      toast({
+        title: "Fehler",
+        description: "Punktabzug konnte nicht gespeichert werden",
+        variant: "destructive",
+      });
+    }
+
+    // Move to next player
     setCurrentPlayer((current) => (current + 1) % players.length);
+    setChallenge(null);
   };
 
   if (!gameMode) {
@@ -189,18 +217,27 @@ export default function TruthOrDare() {
             <div className="text-center mb-6">
               <MessageSquare className="w-12 h-12 mx-auto mb-4 text-primary" />
               <p className="text-lg">{challenge}</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                +5 Punkte für {players[currentPlayer]}!
-              </p>
-              <p className="text-sm font-semibold mt-1">
-                Aktuelle Punkte: {playerScores[players[currentPlayer]] || 0}
-              </p>
-              <Button
-                className="mt-4"
-                onClick={() => setChallenge(null)}
-              >
-                Nächster Spieler
-              </Button>
+              <div className="mt-4 space-y-4">
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    setChallenge(null);
+                    setCurrentPlayer((current) => (current + 1) % players.length);
+                  }}
+                >
+                  Aufgabe erledigt (+5 Punkte)
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={handleSkipChallenge}
+                >
+                  Mach ich nicht (-3 Punkte)
+                </Button>
+                <p className="text-sm font-semibold">
+                  Aktuelle Punkte: {playerScores[players[currentPlayer]] || 0}
+                </p>
+              </div>
             </div>
           )}
           {!challenge && (
