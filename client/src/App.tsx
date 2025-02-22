@@ -16,8 +16,13 @@ import { LanguageContext, type Language } from "@/lib/i18n";
 import { SplashScreen } from "@/components/splash-screen";
 import HighScores from "@/pages/high-scores";
 import { useAuth, AuthProvider } from "@/hooks/use-auth";
+import ProfilePage from "@/pages/profile";
 
-function ProtectedRoute({ component: Component }: { component: () => JSX.Element }) {
+interface ProtectedRouteProps {
+  component: React.ComponentType;
+}
+
+function ProtectedRoute({ component: Component }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -45,6 +50,7 @@ function Router() {
           <Route path="/impressum" component={Impressum} />
           <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
           <Route path="/high-scores" component={HighScores} />
+          <Route path="/profile" component={() => <ProtectedRoute component={ProfilePage} />} />
           <Route component={NotFound} />
         </Switch>
       </main>
