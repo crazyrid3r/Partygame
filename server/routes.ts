@@ -66,7 +66,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const updatedUser = await storage.updateUser(req.user.id, parsed.data);
+      // Nur die Felder aktualisieren, die tatsächlich im Request-Body vorhanden sind
+      const updateData = Object.entries(parsed.data).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ error: "No values to update" });
+      }
+
+      const updatedUser = await storage.updateUser(req.user.id, updateData);
       res.json(updatedUser);
     } catch (error) {
       console.error("Update user error:", error);

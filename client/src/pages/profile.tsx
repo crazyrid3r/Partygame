@@ -60,12 +60,26 @@ export default function ProfilePage() {
         imageUrl = data.imageUrl;
       }
 
-      await updateProfile({
-        username: formData.username !== user.username ? formData.username : undefined,
-        email: formData.email !== user.email ? formData.email : undefined,
-        bio: formData.bio !== user.bio ? formData.bio : undefined,
-        profileImage: imageUrl !== user.profileImage ? imageUrl : undefined,
-      });
+      const updates: Record<string, string> = {};
+
+      if (formData.username !== user.username) {
+        updates.username = formData.username;
+      }
+      if (formData.email !== user.email) {
+        updates.email = formData.email;
+      }
+      if (formData.bio !== user.bio) {
+        updates.bio = formData.bio;
+      }
+      if (imageUrl !== user.profileImage) {
+        updates.profileImage = imageUrl;
+      }
+
+      // Nur aktualisieren, wenn es tatsächlich Änderungen gibt
+      if (Object.keys(updates).length > 0) {
+        await updateProfile(updates);
+      }
+
       setIsEditing(false);
       setSelectedImage(null);
     } catch (error: any) {
@@ -85,8 +99,8 @@ export default function ProfilePage() {
             <div className="relative">
               <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
                 {user.profileImage ? (
-                  <img 
-                    src={user.profileImage} 
+                  <img
+                    src={user.profileImage}
                     alt="Profilbild"
                     className="w-full h-full object-cover"
                   />
@@ -96,8 +110,8 @@ export default function ProfilePage() {
               </div>
               {isEditing && (
                 <div className="absolute bottom-0 right-0">
-                  <label 
-                    htmlFor="profile-image" 
+                  <label
+                    htmlFor="profile-image"
                     className="cursor-pointer bg-primary text-primary-foreground rounded-full p-2 hover:bg-primary/90"
                   >
                     <Upload className="w-4 h-4" />
