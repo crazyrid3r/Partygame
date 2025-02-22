@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const updateProfileMutation = useMutation({
+const updateProfileMutation = useMutation({
     mutationFn: async (data: { 
       username?: string; 
       email?: string;
@@ -60,7 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return response.json();
     },
     onSuccess: (updatedUser: User) => {
+      // Cache invalidieren und neu setzen
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       queryClient.setQueryData(["/api/user"], updatedUser);
+
       toast({
         title: "Erfolg",
         description: "Profil wurde aktualisiert",
