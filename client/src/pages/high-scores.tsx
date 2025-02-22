@@ -2,18 +2,38 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Medal } from "lucide-react";
 import type { Score } from "@shared/schema";
+import { LoadingScreen } from "@/components/loading-screen";
 
 export default function HighScores() {
-  const { data: scores } = useQuery<Score[]>({
-    queryKey: ["/api/scores"]
+  const { data: scores, isLoading, error } = useQuery<Score[]>({
+    queryKey: ["/api/scores"],
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
+
+  if (isLoading) {
+    return <LoadingScreen message="Lade Bestenliste..." />;
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="pt-6">
+            <p className="text-center text-red-500">
+              Fehler beim Laden der Bestenliste. Bitte versuche es später erneut.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <Card className="max-w-2xl mx-auto">
         <CardContent className="pt-6">
           <h1 className="text-3xl font-bold mb-6 text-center">High Scores 🏆</h1>
-          
+
           <div className="space-y-4">
             {scores?.map((score, index) => (
               <div
@@ -28,7 +48,12 @@ export default function HighScores() {
                       'text-amber-600'
                     }`} />
                   )}
-                  <span className="font-semibold">{score.playerName}</span>
+                  <div>
+                    <span className="font-semibold">{score.playerName}</span>
+                    <span className="text-sm text-muted-foreground ml-2">
+                      ({score.gameType})
+                    </span>
+                  </div>
                 </div>
                 <span className="text-xl font-bold">{score.points} Punkte</span>
               </div>
