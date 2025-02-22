@@ -11,6 +11,7 @@ import StoryGenerator from "@/pages/story-generator";
 import Impressum from "@/pages/impressum";
 import { useState } from "react";
 import { LanguageContext, type Language, useTranslation } from "@/lib/i18n";
+import { SplashScreen } from "@/components/splash-screen";
 
 function Router() {
   const t = useTranslation();
@@ -41,6 +42,11 @@ function Router() {
 
 function App() {
   const [language, setLanguage] = useState<Language>('de');
+  const [showSplash, setShowSplash] = useState(true);
+
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
