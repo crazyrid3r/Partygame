@@ -23,6 +23,7 @@ export interface IStorage {
   getQuestions(type: 'truth' | 'dare', mode: 'kids' | 'normal' | 'spicy'): Promise<Question[]>;
   updateQuestion(id: number, question: Partial<InsertQuestion>): Promise<Question>;
   deleteQuestion(id: number): Promise<void>;
+  getUserTotalPoints(userId: number): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -154,6 +155,15 @@ export class DatabaseStorage implements IStorage {
       .update(questions)
       .set({ active: false })
       .where(eq(questions.id, id));
+  }
+
+  async getUserTotalPoints(userId: number): Promise<number> {
+    const userScores = await db
+      .select({ points: scores.points })
+      .from(scores)
+      .where(eq(scores.userId, userId));
+
+    return userScores.reduce((total, score) => total + score.points, 0);
   }
 }
 

@@ -8,10 +8,12 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Question } from "@shared/schema";
 import { NicknameGenerator } from "@/components/nickname-generator";
+import { useAuth } from "@/hooks/use-auth"; // Fixed import path
 
 type GameMode = 'kids' | 'normal' | 'spicy';
 
 export default function TruthOrDare() {
+  const { user } = useAuth();
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
   const [playerCount, setPlayerCount] = useState<number | null>(null);
   const [players, setPlayers] = useState<string[]>([]);
@@ -43,8 +45,13 @@ export default function TruthOrDare() {
   };
 
   const addPlayer = () => {
-    if (newPlayer.trim() && players.length < playerCount!) {
-      setPlayers([...players, newPlayer.trim()]);
+    if (players.length < playerCount!) {
+      if (user && newPlayer === user.username) {
+        // Wenn der angemeldete Benutzer hinzugefügt wird
+        setPlayers([...players, user.username]);
+      } else if (newPlayer.trim()) {
+        setPlayers([...players, newPlayer.trim()]);
+      }
       setNewPlayer("");
     }
   };
@@ -73,10 +80,14 @@ export default function TruthOrDare() {
 
     // Save score to database
     try {
-      await apiRequest("POST", "/api/scores", {
+      const scoreData = {
         playerName: currentPlayerName,
-        points: currentScore
-      });
+        points: 5,
+        userId: user?.id, // Wenn der aktuelle Spieler der angemeldete Benutzer ist
+        gameType: 'truth-or-dare'
+      };
+
+      await apiRequest("POST", "/api/scores", scoreData);
     } catch (error) {
       console.error("Failed to save score:", error);
       toast({
@@ -99,7 +110,9 @@ export default function TruthOrDare() {
     try {
       await apiRequest("POST", "/api/scores", {
         playerName: currentPlayerName,
-        points: currentScore
+        points: currentScore,
+        userId: user?.id,
+        gameType: 'truth-or-dare'
       });
 
       toast({
@@ -183,10 +196,23 @@ export default function TruthOrDare() {
               Spieler hinzufügen ({players.length}/{playerCount})
             </h2>
             <div className="space-y-4">
-              <NicknameGenerator
-                onSelect={setNewPlayer}
-                currentNickname={newPlayer}
-              />
+              {user && players.length === 0 && (
+                <Button
+                  onClick={() => {
+                    setNewPlayer(user.username);
+                    addPlayer();
+                  }}
+                  className="w-full bg-primary"
+                >
+                  Als {user.username} spielen
+                </Button>
+              )}
+              <div className="relative">
+                <NicknameGenerator
+                  onSelect={setNewPlayer}
+                  currentNickname={newPlayer}
+                />
+              </div>
               <Button 
                 onClick={addPlayer}
                 className="w-full"
@@ -201,6 +227,11 @@ export default function TruthOrDare() {
                 {players.map((player, i) => (
                   <li key={i} className="flex items-center gap-2 p-2 bg-muted rounded">
                     {player}
+                    {user && player === user.username && (
+                      <span className="text-xs text-muted-foreground ml-auto">
+                        (Angemeldet)
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

@@ -173,6 +173,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(scores);
   });
 
+  // Neue Route für Benutzer-Gesamtpunktzahl
+  app.get("/api/user/total-points", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    try {
+      const totalPoints = await storage.getUserTotalPoints(req.user.id);
+      res.json({ totalPoints });
+    } catch (error) {
+      console.error("Get total points error:", error);
+      res.status(500).json({ error: "Failed to get total points" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

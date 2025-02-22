@@ -11,7 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { User, Upload } from "lucide-react";
+import { User, Upload, Trophy } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function ProfilePage() {
   const { user, updateProfile } = useAuth();
@@ -20,6 +21,12 @@ export default function ProfilePage() {
     username: "",
     email: "",
     bio: "",
+  });
+
+  // Abfrage der Gesamtpunktzahl
+  const { data: pointsData } = useQuery({
+    queryKey: ["/api/user/total-points"],
+    enabled: !!user,
   });
 
   // Initialisiere Formularwerte wenn User-Daten verfügbar sind
@@ -152,6 +159,14 @@ export default function ProfilePage() {
               <CardDescription>
                 Verwalte deine persönlichen Informationen
               </CardDescription>
+            </div>
+          </div>
+          {/* Neue Punkteanzeige */}
+          <div className="mt-4 p-4 bg-primary/5 rounded-lg flex items-center gap-3">
+            <Trophy className="w-5 h-5 text-primary" />
+            <div>
+              <p className="text-sm font-medium">Gesamtpunktzahl</p>
+              <p className="text-2xl font-bold">{pointsData?.totalPoints || 0}</p>
             </div>
           </div>
         </CardHeader>
