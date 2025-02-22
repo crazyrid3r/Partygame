@@ -8,7 +8,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
+  updateUser(id: number, updateData: Partial<User>): Promise<User>;
 
   // Existing methods
   createGame(game: InsertGame): Promise<Game>;
@@ -42,12 +42,23 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUser(id: number, user: Partial<InsertUser>): Promise<User> {
-    console.log("Storage updateUser called with:", { id, user });
+  async updateUser(id: number, updateData: Partial<User>): Promise<User> {
+    console.log("Storage updateUser called with:", { id, updateData });
+
+    // Filtern Sie undefined Werte heraus
+    const cleanedData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined)
+    );
+
+    console.log("Cleaned update data:", cleanedData);
+
+    if (Object.keys(cleanedData).length === 0) {
+      throw new Error("No values to set");
+    }
 
     const [updatedUser] = await db
       .update(users)
-      .set(user)
+      .set(cleanedData)
       .where(eq(users.id, id))
       .returning();
 

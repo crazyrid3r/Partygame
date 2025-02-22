@@ -61,24 +61,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      // Debug-Log
-      console.log("Update request body:", req.body);
+      // Debug-Log für eingehende Daten
+      console.log("Incoming update data:", req.body);
 
-      const parsed = insertUserSchema.partial().safeParse(req.body);
-      if (!parsed.success) {
-        return res.status(400).json({ error: "Invalid user data" });
-      }
+      // Erlauben wir explizit bio und profileImage
+      const updateData = {
+        ...req.body,
+        id: undefined,
+        password: undefined,
+        createdAt: undefined
+      };
 
-      // Debug-Log
-      console.log("Parsed update data:", parsed.data);
+      console.log("Processed update data:", updateData);
 
       // Führe das Update durch
-      const updatedUser = await storage.updateUser(req.user.id, parsed.data);
+      const updatedUser = await storage.updateUser(req.user.id, updateData);
 
-      // Debug-Log
-      console.log("Updated user:", updatedUser);
+      // Debug-Log für den aktualisierten Benutzer
+      console.log("Updated user result:", updatedUser);
 
-      // Sende den aktualisierten Benutzer zurück
       res.json(updatedUser);
     } catch (error) {
       console.error("Update user error:", error);
