@@ -43,16 +43,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: number, user: Partial<InsertUser>): Promise<User> {
+    console.log("Storage updateUser called with:", { id, user });
+
     const [updatedUser] = await db
       .update(users)
-      .set({
-        ...user,
-        // Stellen Sie sicher, dass diese Felder nicht überschrieben werden
-        id: undefined,
-        createdAt: undefined,
-      })
+      .set(user)
       .where(eq(users.id, id))
       .returning();
+
+    console.log("Storage updateUser result:", updatedUser);
 
     if (!updatedUser) {
       throw new Error('User not found');

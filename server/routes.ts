@@ -61,35 +61,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      // Wenn wir im Bearbeitungsmodus sind, erlauben wir das Aktualisieren
-      // auch wenn keine Änderungen vorgenommen wurden
-      const updatedUser = await storage.getUser(req.user.id);
-      if (!updatedUser) {
-        return res.status(404).json({ error: "User not found" });
+      // Debug-Log
+      console.log("Update request body:", req.body);
+
+      const parsed = insertUserSchema.partial().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid user data" });
       }
 
-      // Wenn es Aktualisierungen gibt, führen wir sie durch
-      if (Object.keys(req.body).length > 0) {
-        const parsed = insertUserSchema.partial().safeParse(req.body);
-        if (!parsed.success) {
-          return res.status(400).json({ error: "Invalid user data" });
-        }
+      // Debug-Log
+      console.log("Parsed update data:", parsed.data);
 
-        const updateData = Object.entries(parsed.data).reduce((acc, [key, value]) => {
-          if (value !== undefined) {
-            acc[key] = value;
-          }
-          return acc;
-        }, {} as Record<string, any>);
+      // Führe das Update durch
+      const updatedUser = await storage.updateUser(req.user.id, parsed.data);
 
-        // Aktualisiere den Benutzer nur wenn es tatsächlich Änderungen gibt
-        if (Object.keys(updateData).length > 0) {
-          const updatedUser = await storage.updateUser(req.user.id, updateData);
-          return res.json(updatedUser);
-        }
-      }
+      // Debug-Log
+      console.log("Updated user:", updatedUser);
 
-      // Wenn keine Änderungen vorliegen, senden wir einfach die aktuellen Benutzerdaten zurück
+      // Sende den aktualisierten Benutzer zurück
       res.json(updatedUser);
     } catch (error) {
       console.error("Update user error:", error);

@@ -41,42 +41,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
 const updateProfileMutation = useMutation({
-    mutationFn: async (data: { 
-      username?: string; 
-      email?: string;
-      bio?: string | null;
-      profileImage?: string;
-    }) => {
-      // Nur wenn es tatsächlich Daten zum Aktualisieren gibt
-      if (Object.keys(data).length === 0) {
-        return user;
-      }
+  mutationFn: async (data: { 
+    username?: string; 
+    email?: string;
+    bio?: string | null;
+    profileImage?: string;
+  }) => {
+    console.log("Sending update request with data:", data);
 
-      const response = await apiRequest("PATCH", "/api/user", data);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Profilaktualisierung fehlgeschlagen");
-      }
-      return response.json();
-    },
-    onSuccess: (updatedUser: User) => {
-      // Cache invalidieren und neu setzen
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      queryClient.setQueryData(["/api/user"], updatedUser);
+    const response = await apiRequest("PATCH", "/api/user", data);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Profilaktualisierung fehlgeschlagen");
+    }
+    return response.json();
+  },
+  onSuccess: (updatedUser: User) => {
+    console.log("Profile update success, new user data:", updatedUser);
 
-      toast({
-        title: "Erfolg",
-        description: "Profil wurde aktualisiert",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Fehler",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+    // Cache invalidieren und neu setzen
+    queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+    queryClient.setQueryData(["/api/user"], updatedUser);
+
+    toast({
+      title: "Erfolg",
+      description: "Profil wurde aktualisiert",
+    });
+  },
+  onError: (error: Error) => {
+    console.error("Profile update error:", error);
+    toast({
+      title: "Fehler",
+      description: error.message,
+      variant: "destructive",
+    });
+  },
+});
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
