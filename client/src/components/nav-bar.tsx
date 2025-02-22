@@ -19,10 +19,10 @@ export function NavBar() {
     <nav className="bg-primary/5 border-b">
       <div className="container mx-auto px-4 h-14 flex items-center justify-between">
         <Link href="/">
-          <a className="flex items-center gap-2 font-semibold text-lg hover:text-primary transition-colors">
+          <Button variant="ghost" className="flex items-center gap-2 font-semibold text-lg">
             <Home className="w-5 h-5" />
             {t.nav.home}
-          </a>
+          </Button>
         </Link>
 
         <div className="flex items-center gap-4">
