@@ -44,9 +44,9 @@ function Router() {
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/auth" component={AuthPage} />
-          <Route path="/dice" component={() => <ProtectedRoute component={DiceGame} />} />
+          <Route path="/dice" component={DiceGame} />
           <Route path="/truth-or-dare" component={TruthOrDare} />
-          <Route path="/story" component={() => <ProtectedRoute component={StoryGenerator} />} />
+          <Route path="/story" component={StoryGenerator} />
           <Route path="/impressum" component={Impressum} />
           <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
           <Route path="/high-scores" component={HighScores} />
