@@ -23,23 +23,24 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="relative">
+      <div className="relative flex flex-col items-center">
         {/* Main logo animation */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", duration: 0.8 }}
+          className="w-96 h-96 flex items-center justify-center"
         >
           <img
             src="/crazyrid3r-logo.gif"
             alt="Party Games"
-            className="w-48 h-48"
+            className="w-auto h-auto max-w-full max-h-full object-contain"
           />
         </motion.div>
 
         {/* Floating party elements */}
         <motion.div
-          className="absolute -top-8 -left-8"
+          className="absolute -top-12 -left-12"
           animate={{ 
             y: [0, -10, 0],
             rotate: [0, 10, -10, 0]
@@ -50,11 +51,11 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             ease: "easeInOut"
           }}
         >
-          <PartyPopper className="w-8 h-8 text-primary" />
+          <PartyPopper className="w-12 h-12 text-primary" />
         </motion.div>
 
         <motion.div
-          className="absolute -bottom-8 -right-8"
+          className="absolute -bottom-12 -right-12"
           animate={{ 
             y: [0, 10, 0],
             rotate: [0, -10, 10, 0]
@@ -66,11 +67,11 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             delay: 0.3
           }}
         >
-          <Music className="w-8 h-8 text-primary" />
+          <Music className="w-12 h-12 text-primary" />
         </motion.div>
 
         <motion.div
-          className="absolute -top-8 -right-8"
+          className="absolute -top-12 -right-12"
           animate={{ 
             scale: [1, 1.2, 1],
             opacity: [0.5, 1, 0.5]
@@ -81,7 +82,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             ease: "easeInOut"
           }}
         >
-          <Sparkles className="w-8 h-8 text-primary" />
+          <Sparkles className="w-12 h-12 text-primary" />
         </motion.div>
       </div>
 
