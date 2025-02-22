@@ -119,19 +119,9 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("Fetching high scores...");
       const result = await db
-        .select({
-          id: scores.id,
-          userId: scores.userId,
-          playerName: scores.playerName,
-          points: scores.points,
-          gameType: scores.gameType,
-          createdAt: scores.createdAt
-        })
+        .select()
         .from(scores)
-        .orderBy([
-          { column: scores.points, order: "desc" },
-          { column: scores.createdAt, order: "desc" }
-        ])
+        .orderBy(scores.points, 'desc')
         .limit(10);
 
       console.log("High scores query result:", result);
@@ -146,7 +136,7 @@ export class DatabaseStorage implements IStorage {
       }));
     } catch (error) {
       console.error("Error fetching high scores:", error);
-      throw error;
+      throw new Error("Failed to fetch high scores");
     }
   }
 
