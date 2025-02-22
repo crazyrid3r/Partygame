@@ -56,10 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (updatedUser: User) => {
       queryClient.setQueryData(["/api/user"], updatedUser);
-      toast({
-        title: "Erfolg",
-        description: "Profil wurde aktualisiert",
-      });
     },
     onError: (error: Error) => {
       toast({

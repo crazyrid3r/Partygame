@@ -28,7 +28,7 @@ export default function ProfilePage() {
     return null;
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
@@ -40,42 +40,55 @@ export default function ProfilePage() {
         return;
       }
       setSelectedImage(file);
+
+      // Sofort hochladen wenn ein Bild ausgewählt wurde
+      const formData = new FormData();
+      formData.append('image', file);
+
+      try {
+        const response = await fetch('/api/upload-profile-image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) throw new Error('Bildupload fehlgeschlagen');
+
+        const data = await response.json();
+        await updateProfile({
+          profileImage: data.imageUrl
+        });
+
+        toast({
+          title: "Erfolg",
+          description: "Profilbild wurde aktualisiert",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Fehler",
+          description: error.message || "Bildupload fehlgeschlagen",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      let imageUrl = user.profileImage;
-
-      if (selectedImage) {
-        const formData = new FormData();
-        formData.append('image', selectedImage);
-        const response = await fetch('/api/upload-profile-image', {
-          method: 'POST',
-          body: formData,
-        });
-        if (!response.ok) throw new Error('Bildupload fehlgeschlagen');
-        const data = await response.json();
-        imageUrl = data.imageUrl;
-      }
-
       const updates: Record<string, string> = {};
 
-      if (formData.username !== user.username) {
+      // Prüfe jedes Feld einzeln
+      if (formData.username && formData.username !== user.username) {
         updates.username = formData.username;
       }
-      if (formData.email !== user.email) {
+      if (formData.email && formData.email !== user.email) {
         updates.email = formData.email;
       }
       if (formData.bio !== user.bio) {
         updates.bio = formData.bio;
       }
-      if (imageUrl !== user.profileImage) {
-        updates.profileImage = imageUrl || "";
-      }
 
-      // Nur aktualisieren, wenn es tatsächlich Änderungen gibt
+      // Nur aktualisieren wenn es Änderungen gibt
       if (Object.keys(updates).length > 0) {
         await updateProfile(updates);
         toast({
@@ -85,7 +98,6 @@ export default function ProfilePage() {
       }
 
       setIsEditing(false);
-      setSelectedImage(null);
     } catch (error: any) {
       toast({
         title: "Fehler",
@@ -112,14 +124,12 @@ export default function ProfilePage() {
                   <User className="w-12 h-12 text-primary" />
                 )}
               </div>
-              {isEditing && (
-                <div className="absolute bottom-0 right-0">
-                  <label
-                    htmlFor="profile-image"
-                    className="cursor-pointer bg-primary text-primary-foreground rounded-full p-2 hover:bg-primary/90"
-                  >
-                    <Upload className="w-4 h-4" />
-                  </label>
+              <div className="absolute -bottom-2 -right-2">
+                <label
+                  htmlFor="profile-image"
+                  className="cursor-pointer bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-2 shadow-lg flex items-center justify-center"
+                >
+                  <Upload className="w-4 h-4" />
                   <input
                     id="profile-image"
                     type="file"
@@ -127,8 +137,8 @@ export default function ProfilePage() {
                     onChange={handleImageChange}
                     className="hidden"
                   />
-                </div>
-              )}
+                </label>
+              </div>
             </div>
             <div>
               <CardTitle>Benutzerprofil</CardTitle>
@@ -148,6 +158,7 @@ export default function ProfilePage() {
                   setFormData({ ...formData, username: e.target.value })
                 }
                 disabled={!isEditing}
+                placeholder="Dein Benutzername"
               />
             </div>
             <div className="space-y-2">
@@ -159,6 +170,7 @@ export default function ProfilePage() {
                   setFormData({ ...formData, email: e.target.value })
                 }
                 disabled={!isEditing}
+                placeholder="deine@email.de"
               />
             </div>
             <div className="space-y-2">
@@ -170,7 +182,7 @@ export default function ProfilePage() {
                 }
                 disabled={!isEditing}
                 placeholder="Erzähle etwas über dich..."
-                className="min-h-[100px]"
+                className="min-h-[100px] resize-none"
               />
             </div>
             <div className="pt-4 space-x-4">
@@ -187,7 +199,6 @@ export default function ProfilePage() {
                         email: user.email,
                         bio: user.bio || "",
                       });
-                      setSelectedImage(null);
                     }}
                   >
                     Abbrechen
