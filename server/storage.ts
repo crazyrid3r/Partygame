@@ -121,13 +121,11 @@ export class DatabaseStorage implements IStorage {
       console.log("Fetching high scores...");
       const result = await db
         .select({
-          id: scores.id,
-          userId: scores.userId,
           playerName: scores.playerName,
           points: sql<number>`SUM(${scores.points})`.mapWith(Number),
         })
         .from(scores)
-        .groupBy(scores.playerName, scores.id, scores.userId)
+        .groupBy(scores.playerName)
         .orderBy(sql`SUM(${scores.points})`, 'desc')
         .limit(10);
 
@@ -137,9 +135,9 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
 
-      return result.map(score => ({
-        id: score.id,
-        userId: score.userId,
+      return result.map((score, index) => ({
+        id: index + 1, // Verwende einen Index als ID
+        userId: null, // Nicht relevant für die Gesamtanzeige
         playerName: score.playerName,
         points: score.points,
         gameType: 'Gesamt', // Wir zeigen nur die Gesamtpunktzahl an
