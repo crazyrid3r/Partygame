@@ -55,7 +55,10 @@ export default function HighScores() {
                     </span>
                   </div>
                 </div>
-                <span className="text-xl font-bold">{score.points} Punkte</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-bold">{score.points}</span>
+                  <span className="text-sm text-muted-foreground">Punkte</span>
+                </div>
               </div>
             ))}
 

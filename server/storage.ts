@@ -128,13 +128,14 @@ export class DatabaseStorage implements IStorage {
       })
       .from(scores)
       .leftJoin(users, eq(scores.userId, users.id))
-      .orderBy({ points: 'desc' })
+      .orderBy([{ points: "desc" }, { createdAt: "desc" }])
       .limit(10);
 
     return result.map(score => ({
       id: score.id,
       userId: score.userId,
-      playerName: score.userId ? score.username! : score.playerName,
+      // Wenn es ein registrierter User ist (userId vorhanden), nutze den username
+      playerName: score.username || score.playerName,
       points: score.points,
       gameType: score.gameType || 'Unbekannt',
       createdAt: score.createdAt
