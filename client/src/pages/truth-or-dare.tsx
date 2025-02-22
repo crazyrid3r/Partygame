@@ -22,12 +22,12 @@ export default function TruthOrDare() {
 
   // Lade Fragen aus der Datenbank wenn der Spielmodus ausgewählt wurde
   const { data: truthQuestions } = useQuery<Question[]>({
-    queryKey: ['/api/questions/truth', gameMode],
+    queryKey: [`/api/questions/truth/${gameMode}`],
     enabled: !!gameMode,
   });
 
   const { data: dareQuestions } = useQuery<Question[]>({
-    queryKey: ['/api/questions/dare', gameMode],
+    queryKey: [`/api/questions/dare/${gameMode}`],
     enabled: !!gameMode,
   });
 
