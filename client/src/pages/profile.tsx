@@ -86,14 +86,16 @@ export default function ProfilePage() {
         updates.bio = formData.bio.trim();
       }
 
-      // Aktualisierung durchführen
-      await updateProfile(updates);
+      // Nur wenn es wirklich Änderungen gibt
+      if (Object.keys(updates).length > 0) {
+        await updateProfile(updates);
+        toast({
+          title: "Erfolg",
+          description: "Profil wurde aktualisiert",
+        });
+      }
 
       setIsEditing(false);
-      toast({
-        title: "Erfolg",
-        description: "Profil wurde aktualisiert",
-      });
     } catch (error: any) {
       toast({
         title: "Fehler",
@@ -104,22 +106,21 @@ export default function ProfilePage() {
   };
 
   const startEditing = () => {
-    // Setze einfach nur den Bearbeitungsmodus und initialisiere die Formularwerte
-    setIsEditing(true);
     setFormData({
       username: user.username,
       email: user.email,
       bio: user.bio || "",
     });
+    setIsEditing(true);
   };
 
   const cancelEditing = () => {
-    setIsEditing(false);
     setFormData({
       username: user.username,
       email: user.email,
       bio: user.bio || "",
     });
+    setIsEditing(false);
   };
 
   return (
