@@ -116,30 +116,40 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getHighScores(): Promise<Score[]> {
-    const result = await db
-      .select({
-        id: scores.id,
-        userId: scores.userId,
-        playerName: scores.playerName,
-        points: scores.points,
-        gameType: scores.gameType,
-        createdAt: scores.createdAt,
-        username: users.username
-      })
-      .from(scores)
-      .leftJoin(users, eq(scores.userId, users.id))
-      .orderBy([{ points: "desc" }, { createdAt: "desc" }])
-      .limit(10);
+    try {
+      console.log("Fetching high scores...");
+      const result = await db
+        .select({
+          id: scores.id,
+          userId: scores.userId,
+          playerName: scores.playerName,
+          points: scores.points,
+          gameType: scores.gameType,
+          createdAt: scores.createdAt,
+          username: users.username
+        })
+        .from(scores)
+        .leftJoin(users, eq(scores.userId, users.id))
+        .orderBy([
+          { column: scores.points, order: "desc" },
+          { column: scores.createdAt, order: "desc" }
+        ])
+        .limit(10);
 
-    return result.map(score => ({
-      id: score.id,
-      userId: score.userId,
-      // Wenn es ein registrierter User ist (userId vorhanden), nutze den username
-      playerName: score.username || score.playerName,
-      points: score.points,
-      gameType: score.gameType || 'Unbekannt',
-      createdAt: score.createdAt
-    }));
+      console.log("High scores query result:", result);
+
+      return result.map(score => ({
+        id: score.id,
+        userId: score.userId,
+        playerName: score.username || score.playerName,
+        points: score.points,
+        gameType: score.gameType || 'Unbekannt',
+        createdAt: score.createdAt
+      }));
+    } catch (error) {
+      console.error("Error fetching high scores:", error);
+      throw error;
+    }
   }
 
   async createQuestion(question: InsertQuestion): Promise<Question> {

@@ -3,9 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Medal } from "lucide-react";
 import type { Score } from "@shared/schema";
 import { LoadingScreen } from "@/components/loading-screen";
+import { Button } from "@/components/ui/button";
 
 export default function HighScores() {
-  const { data: scores, isLoading, error } = useQuery<Score[]>({
+  const { data: scores, isLoading, error, refetch } = useQuery<Score[]>({
     queryKey: ["/api/scores"],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
@@ -18,10 +19,11 @@ export default function HighScores() {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-2xl mx-auto">
-          <CardContent className="pt-6">
-            <p className="text-center text-red-500">
+          <CardContent className="pt-6 text-center">
+            <p className="text-red-500 mb-4">
               Fehler beim Laden der Bestenliste. Bitte versuche es später erneut.
             </p>
+            <Button onClick={() => refetch()}>Erneut versuchen</Button>
           </CardContent>
         </Card>
       </div>
