@@ -3,50 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MessageSquare } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import type { Question } from "@shared/schema";
 
 type GameMode = 'kids' | 'normal' | 'spicy';
-
-const truthsByMode = {
-  kids: [
-    "Was ist dein Lieblingsessen?",
-    "Welches ist dein Lieblingstier?",
-    "Was möchtest du später mal werden?",
-    "Was war dein schönstes Geburtstagsgeschenk?",
-  ],
-  normal: [
-    "Was war dein peinlichster Moment?",
-    "Was ist deine größte Angst?",
-    "Was war dein schlimmstes Date?",
-    "Welches Geheimnis hast du noch nie jemandem erzählt?",
-  ],
-  spicy: [
-    "Wann hattest du deinen ersten Kuss?",
-    "Mit wem würdest du gerne mal auf ein Date gehen?",
-    "Was war dein wildestes Date?",
-    "Was war dein größter Party-Fauxpas?",
-  ],
-};
-
-const daresByMode = {
-  kids: [
-    "Tanze wie dein Lieblingstier",
-    "Sing dein Lieblingslied",
-    "Mach dein lustigstes Gesicht",
-    "Erzähle einen Witz",
-  ],
-  normal: [
-    "Mache deinen besten Tanzschritt",
-    "Rufe jemanden an und singe für sie/ihn",
-    "Mache ein lustiges Selfie",
-    "Imitiere eine berühmte Person",
-  ],
-  spicy: [
-    "Küsse die Person rechts von dir auf die Wange",
-    "Mache deinen verführerischsten Tanzschritt",
-    "Zeige dein peinlichstes Foto auf deinem Handy",
-    "Flirte mit der Person gegenüber",
-  ],
-};
 
 export default function TruthOrDare() {
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
@@ -57,6 +18,16 @@ export default function TruthOrDare() {
   const [challenge, setChallenge] = useState<string | null>(null);
   const [playerScores, setPlayerScores] = useState<Record<string, number>>({});
 
+  // Lade Fragen aus der Datenbank wenn der Spielmodus ausgewählt wurde
+  const { data: truthQuestions } = useQuery<Question[]>({
+    queryKey: ['/api/questions/truth', gameMode],
+    enabled: !!gameMode,
+  });
+
+  const { data: dareQuestions } = useQuery<Question[]>({
+    queryKey: ['/api/questions/dare', gameMode],
+    enabled: !!gameMode,
+  });
 
   const selectGameMode = (mode: GameMode) => {
     setGameMode(mode);
@@ -75,25 +46,29 @@ export default function TruthOrDare() {
     }
   };
 
-  const getChallenge = (type: "truth" | "dare") => {
+  const getChallenge = async (type: "truth" | "dare") => {
     if (!gameMode) return;
 
-    const list = type === "truth" ? truthsByMode[gameMode] : daresByMode[gameMode];
-    setChallenge(list[Math.floor(Math.random() * list.length)]);
+    const questions = type === "truth" ? truthQuestions : dareQuestions;
+    if (!questions?.length) return;
+
+    const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+    setChallenge(randomQuestion.content);
 
     // Update player score
     const currentPlayerName = players[currentPlayer];
     const currentScore = (playerScores[currentPlayerName] || 0) + 5;
     setPlayerScores({ ...playerScores, [currentPlayerName]: currentScore });
 
-    // Placeholder for API request -  replace with actual API call
-    const apiRequest = (method: string, url: string, data: any) => {
-      console.log("API Request:", method, url, data); // Replace with actual API call
-    };
-    apiRequest("POST", "/api/scores", {
-      playerName: currentPlayerName,
-      points: currentScore
-    });
+    // Save score to database
+    try {
+      await apiRequest("POST", "/api/scores", {
+        playerName: currentPlayerName,
+        points: currentScore
+      });
+    } catch (error) {
+      console.error("Failed to save score:", error);
+    }
 
     setCurrentPlayer((current) => (current + 1) % players.length);
   };
