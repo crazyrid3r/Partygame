@@ -29,7 +29,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", duration: 0.8 }}
-          className="w-96 h-96 flex items-center justify-center"
+          className="w-64 h-64 flex items-center justify-center"
         >
           <img
             src="/crazyrid3r-logo.gif"
@@ -38,9 +38,9 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
           />
         </motion.div>
 
-        {/* Floating party elements */}
+        {/* Floating party elements - moved closer to the logo */}
         <motion.div
-          className="absolute -top-12 -left-12"
+          className="absolute -top-8 -left-8"
           animate={{ 
             y: [0, -10, 0],
             rotate: [0, 10, -10, 0]
@@ -51,11 +51,11 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             ease: "easeInOut"
           }}
         >
-          <PartyPopper className="w-12 h-12 text-primary" />
+          <PartyPopper className="w-10 h-10 text-primary" />
         </motion.div>
 
         <motion.div
-          className="absolute -bottom-12 -right-12"
+          className="absolute -bottom-8 -right-8"
           animate={{ 
             y: [0, 10, 0],
             rotate: [0, -10, 10, 0]
@@ -67,11 +67,11 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             delay: 0.3
           }}
         >
-          <Music className="w-12 h-12 text-primary" />
+          <Music className="w-10 h-10 text-primary" />
         </motion.div>
 
         <motion.div
-          className="absolute -top-12 -right-12"
+          className="absolute -top-8 -right-8"
           animate={{ 
             scale: [1, 1.2, 1],
             opacity: [0.5, 1, 0.5]
@@ -82,7 +82,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
             ease: "easeInOut"
           }}
         >
-          <Sparkles className="w-12 h-12 text-primary" />
+          <Sparkles className="w-10 h-10 text-primary" />
         </motion.div>
       </div>
 
