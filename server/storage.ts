@@ -1,9 +1,15 @@
-import { Game, Story, Score, Question, InsertGame, InsertStory, InsertScore, InsertQuestion, GameState } from "@shared/schema";
+import { Game, Story, Score, Question, User, InsertGame, InsertStory, InsertScore, InsertQuestion, InsertUser, GameState } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
-import { games, stories, scores, questions } from "@shared/schema";
+import { games, stories, scores, questions, users } from "@shared/schema";
 
 export interface IStorage {
+  // User management
+  createUser(user: InsertUser): Promise<User>;
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+
+  // Existing methods
   createGame(game: InsertGame): Promise<Game>;
   getGame(id: number): Promise<Game | undefined>;
   updateGameState(id: number, state: GameState): Promise<Game>;
@@ -12,7 +18,6 @@ export interface IStorage {
   getRecentStories(): Promise<Story[]>;
   createScore(score: InsertScore): Promise<Score>;
   getHighScores(): Promise<Score[]>;
-  // Neue Methoden für Fragen
   createQuestion(question: InsertQuestion): Promise<Question>;
   getQuestions(type: 'truth' | 'dare', mode: 'kids' | 'normal' | 'spicy'): Promise<Question[]>;
   updateQuestion(id: number, question: Partial<InsertQuestion>): Promise<Question>;
@@ -20,6 +25,23 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // User management methods
+  async createUser(user: InsertUser): Promise<User> {
+    const [newUser] = await db.insert(users).values(user).returning();
+    return newUser;
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  // Existing methods remain unchanged
   async createGame(game: InsertGame): Promise<Game> {
     const [newGame] = await db.insert(games).values(game).returning();
     return newGame;
@@ -70,7 +92,6 @@ export class DatabaseStorage implements IStorage {
       .limit(10);
   }
 
-  // Neue Methoden für Fragen
   async createQuestion(question: InsertQuestion): Promise<Question> {
     const [newQuestion] = await db.insert(questions).values(question).returning();
     return newQuestion;

@@ -2,8 +2,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertGameSchema, insertStorySchema, insertScoreSchema, insertQuestionSchema } from "@shared/schema";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication routes and middleware
+  setupAuth(app);
+
   // Game routes
   app.post("/api/games", async (req, res) => {
     const parsed = insertGameSchema.safeParse(req.body);
