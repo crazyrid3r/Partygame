@@ -129,7 +129,6 @@ export class DatabaseStorage implements IStorage {
         })
         .from(scores)
         .orderBy(scores.points, 'desc')
-        .orderBy(scores.createdAt, 'desc')
         .limit(10);
 
       console.log("High scores query result:", result);
