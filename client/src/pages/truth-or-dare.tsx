@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Question } from "@shared/schema";
+import { NicknameGenerator } from "@/components/nickname-generator";
 
 type GameMode = 'kids' | 'normal' | 'spicy';
 
@@ -181,22 +182,29 @@ export default function TruthOrDare() {
             <h2 className="text-xl font-bold mb-4">
               Spieler hinzufügen ({players.length}/{playerCount})
             </h2>
-            <div className="flex gap-2 mb-4">
-              <Input
-                value={newPlayer}
-                onChange={(e) => setNewPlayer(e.target.value)}
-                placeholder="Spielername"
-                onKeyDown={(e) => e.key === "Enter" && addPlayer()}
+            <div className="space-y-4">
+              <NicknameGenerator
+                onSelect={setNewPlayer}
+                currentNickname={newPlayer}
               />
-              <Button onClick={addPlayer}>Hinzufügen</Button>
+              <Button 
+                onClick={addPlayer}
+                className="w-full"
+                disabled={!newPlayer.trim()}
+              >
+                Hinzufügen
+              </Button>
             </div>
-            <ul className="space-y-2">
-              {players.map((player, i) => (
-                <li key={i} className="flex items-center gap-2">
-                  {player}
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4">
+              <h3 className="font-semibold mb-2">Spielerliste:</h3>
+              <ul className="space-y-2">
+                {players.map((player, i) => (
+                  <li key={i} className="flex items-center gap-2 p-2 bg-muted rounded">
+                    {player}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </CardContent>
         </Card>
       </div>
