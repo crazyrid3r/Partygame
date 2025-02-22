@@ -164,13 +164,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!parsed.success) {
       return res.status(400).json({ error: "Invalid score data" });
     }
-    const score = await storage.createScore(parsed.data);
-    res.json(score);
+
+    // Ensure userId is properly set for authenticated users
+    if (req.isAuthenticated()) {
+      parsed.data.userId = req.user.id;
+    }
+
+    try {
+      const score = await storage.createScore(parsed.data);
+      res.json(score);
+    } catch (error) {
+      console.error("Failed to create score:", error);
+      res.status(500).json({ error: "Failed to create score" });
+    }
   });
 
   app.get("/api/scores", async (_req, res) => {
-    const scores = await storage.getHighScores();
-    res.json(scores);
+    try {
+      const scores = await storage.getHighScores();
+      res.json(scores);
+    } catch (error) {
+      console.error("Failed to get high scores:", error);
+      res.status(500).json({ error: "Failed to get high scores" });
+    }
   });
 
   // Neue Route für Benutzer-Gesamtpunktzahl

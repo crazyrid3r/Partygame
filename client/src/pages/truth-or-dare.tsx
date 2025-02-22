@@ -94,7 +94,7 @@ export default function TruthOrDare() {
     if (user && currentPlayerName === user.username) {
       try {
         await apiRequest("POST", "/api/scores", {
-          playerName: currentPlayerName,
+          playerName: user.username, // Use the authenticated username
           points: 5,
           userId: user.id,
           gameType: 'truth-or-dare'
@@ -121,7 +121,7 @@ export default function TruthOrDare() {
     if (user && currentPlayerName === user.username) {
       try {
         await apiRequest("POST", "/api/scores", {
-          playerName: currentPlayerName,
+          playerName: user.username, // Use the authenticated username
           points: -3,
           userId: user.id,
           gameType: 'truth-or-dare'
