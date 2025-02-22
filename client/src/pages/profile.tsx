@@ -75,51 +75,55 @@ export default function ProfilePage() {
     try {
       const updates: Record<string, string> = {};
 
-      if (formData.username !== user.username) {
-        updates.username = formData.username;
+      // Prüfe auf tatsächliche Änderungen
+      if (formData.username.trim() !== user.username) {
+        updates.username = formData.username.trim();
       }
-      if (formData.email !== user.email) {
-        updates.email = formData.email;
+      if (formData.email.trim() !== user.email) {
+        updates.email = formData.email.trim();
       }
-      if (formData.bio !== user.bio) {
-        updates.bio = formData.bio;
+      if (formData.bio?.trim() !== user.bio) {
+        updates.bio = formData.bio.trim();
       }
 
+      // Nur wenn es wirklich Änderungen gibt
       if (Object.keys(updates).length > 0) {
         await updateProfile(updates);
-        setIsEditing(false);
         toast({
           title: "Erfolg",
           description: "Profil wurde aktualisiert",
         });
-      } else {
-        setIsEditing(false);
       }
+
+      setIsEditing(false);
     } catch (error: any) {
       toast({
         title: "Fehler",
-        description: error.message || "Ein Fehler ist aufgetreten",
+        description: error.message || "Profil konnte nicht aktualisiert werden",
         variant: "destructive",
       });
     }
   };
 
   const startEditing = () => {
+    // Keine API-Aufrufe hier, nur UI-Status ändern
+    setIsEditing(true);
+    // Aktuelle Werte in das Formular laden
     setFormData({
       username: user.username,
       email: user.email,
       bio: user.bio || "",
     });
-    setIsEditing(true);
   };
 
   const cancelEditing = () => {
+    setIsEditing(false);
+    // Formular auf aktuelle Werte zurücksetzen
     setFormData({
       username: user.username,
       email: user.email,
       bio: user.bio || "",
     });
-    setIsEditing(false);
   };
 
   return (
