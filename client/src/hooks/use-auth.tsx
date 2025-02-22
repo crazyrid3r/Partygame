@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mutationFn: async (data: { 
       username?: string; 
       email?: string;
-      bio?: string;
+      bio?: string | null;
       profileImage?: string;
     }) => {
       // Nur wenn es tatsächlich Daten zum Aktualisieren gibt
@@ -61,6 +61,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (updatedUser: User) => {
       queryClient.setQueryData(["/api/user"], updatedUser);
+      toast({
+        title: "Erfolg",
+        description: "Profil wurde aktualisiert",
+      });
     },
     onError: (error: Error) => {
       toast({

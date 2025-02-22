@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,10 +17,21 @@ export default function ProfilePage() {
   const { user, updateProfile } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    username: user?.username || "",
-    email: user?.email || "",
-    bio: user?.bio || "",
+    username: "",
+    email: "",
+    bio: "",
   });
+
+  // Initialisiere Formularwerte wenn User-Daten verfügbar sind
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || "",
+        email: user.email || "",
+        bio: user.bio || "",
+      });
+    }
+  }, [user]);
 
   if (!user) {
     return null;
@@ -72,7 +83,7 @@ export default function ProfilePage() {
     e.preventDefault();
 
     try {
-      const updates: Record<string, string> = {};
+      const updates: Record<string, string | null> = {};
 
       // Nur tatsächliche Änderungen sammeln
       if (formData.username.trim() !== user.username) {
@@ -81,8 +92,9 @@ export default function ProfilePage() {
       if (formData.email.trim() !== user.email) {
         updates.email = formData.email.trim();
       }
+      // Für Bio explizit null setzen wenn leer
       if (formData.bio?.trim() !== user.bio) {
-        updates.bio = formData.bio.trim();
+        updates.bio = formData.bio.trim() || null;
       }
 
       // Nur wenn es wirklich Änderungen gibt
