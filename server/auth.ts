@@ -112,4 +112,24 @@ export function setupAuth(app: Express) {
       res.status(401).json({ error: "Not authenticated" });
     }
   });
+
+  app.post("/api/reset-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      // Wir geben immer eine erfolgreiche Antwort zurück, auch wenn die E-Mail nicht existiert
+      // Dies verhindert E-Mail-Enumeration
+      res.status(200).json({ 
+        message: "Wenn ein Account mit dieser E-Mail existiert, werden Sie Anweisungen zum Zurücksetzen Ihres Passworts erhalten." 
+      });
+
+      // TODO: Implementiere E-Mail-Versand wenn SendGrid verfügbar ist
+      // Für jetzt loggen wir nur die Anfrage
+      console.log(`Password reset requested for email: ${email}`);
+
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 }

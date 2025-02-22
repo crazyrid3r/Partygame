@@ -11,13 +11,14 @@ interface AuthContextType {
   login: (credentials: { username: string; password: string }) => Promise<void>;
   register: (data: { username: string; password: string; email: string }) => Promise<void>;
   logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  
+
   const {
     data: user,
     isLoading,
@@ -110,6 +111,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const response = await apiRequest("POST", "/api/reset-password", { email });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Passwort zurücksetzen fehlgeschlagen");
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Fehler",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <AuthContext.Provider
       value={{
@@ -119,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login: loginMutation.mutateAsync,
         register: registerMutation.mutateAsync,
         logout: logoutMutation.mutateAsync,
+        resetPassword: resetPasswordMutation.mutateAsync,
       }}
     >
       {children}
