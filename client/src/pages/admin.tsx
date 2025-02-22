@@ -28,6 +28,7 @@ export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [newQuestion, setNewQuestion] = useState("");
+  const [newQuestionEn, setNewQuestionEn] = useState("");
   const [selectedType, setSelectedType] = useState<QuestionType>('truth');
   const [selectedMode, setSelectedMode] = useState<GameMode>('normal');
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
@@ -38,7 +39,7 @@ export default function Admin() {
   });
 
   const addQuestionMutation = useMutation({
-    mutationFn: async (question: { type: string; mode: string; content: string }) => {
+    mutationFn: async (question: { type: string; mode: string; content: string; content_en: string }) => {
       return apiRequest('POST', '/api/questions', question);
     },
     onSuccess: () => {
@@ -48,11 +49,12 @@ export default function Admin() {
         description: "Frage/Aufgabe wurde hinzugefügt",
       });
       setNewQuestion("");
+      setNewQuestionEn("");
     },
   });
 
   const updateQuestionMutation = useMutation({
-    mutationFn: async ({ id, ...question }: { id: number; content: string }) => {
+    mutationFn: async ({ id, ...question }: { id: number; content: string; content_en: string }) => {
       return apiRequest('PATCH', `/api/questions/${id}`, question);
     },
     onSuccess: () => {
@@ -95,10 +97,10 @@ export default function Admin() {
   };
 
   const handleAddQuestion = () => {
-    if (!newQuestion.trim()) {
+    if (!newQuestion.trim() || !newQuestionEn.trim()) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie eine Frage oder Aufgabe ein",
+        description: "Bitte geben Sie die Frage oder Aufgabe in beiden Sprachen ein",
         variant: "destructive",
       });
       return;
@@ -108,6 +110,7 @@ export default function Admin() {
       type: selectedType,
       mode: selectedMode,
       content: newQuestion.trim(),
+      content_en: newQuestionEn.trim(),
     });
   };
 
@@ -115,6 +118,7 @@ export default function Admin() {
     updateQuestionMutation.mutate({
       id: question.id,
       content: editingQuestion?.content || question.content,
+      content_en: editingQuestion?.content_en || question.content_en,
     });
   };
 
@@ -270,35 +274,45 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Input
-                value={newQuestion}
-                onChange={(e) => setNewQuestion(e.target.value)}
-                placeholder="Neue Frage oder Aufgabe eingeben"
-                onKeyDown={(e) => e.key === "Enter" && handleAddQuestion()}
-              />
-              <Button onClick={handleAddQuestion}>Hinzufügen</Button>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  value={newQuestion}
+                  onChange={(e) => setNewQuestion(e.target.value)}
+                  placeholder="Neue Frage oder Aufgabe auf Deutsch eingeben"
+                />
+                <Input
+                  value={newQuestionEn}
+                  onChange={(e) => setNewQuestionEn(e.target.value)}
+                  placeholder="Enter new question or dare in English"
+                />
+                <Button onClick={handleAddQuestion} className="w-full">Hinzufügen</Button>
+              </div>
             </div>
 
             <div className="space-y-4">
               {questions?.map((question) => (
                 <div
                   key={question.id}
-                  className="flex items-center justify-between p-4 bg-muted rounded-lg"
+                  className="space-y-2 p-4 bg-muted rounded-lg"
                 >
                   {editingQuestion?.id === question.id ? (
-                    <Input
-                      value={editingQuestion.content}
-                      onChange={(e) =>
-                        setEditingQuestion({ ...editingQuestion, content: e.target.value })
-                      }
-                    />
-                  ) : (
-                    <p>{question.content}</p>
-                  )}
-                  <div className="flex gap-2">
-                    {editingQuestion?.id === question.id ? (
-                      <>
+                    <div className="space-y-2">
+                      <Input
+                        value={editingQuestion.content}
+                        onChange={(e) =>
+                          setEditingQuestion({ ...editingQuestion, content: e.target.value })
+                        }
+                        placeholder="Deutsche Version"
+                      />
+                      <Input
+                        value={editingQuestion.content_en || ''}
+                        onChange={(e) =>
+                          setEditingQuestion({ ...editingQuestion, content_en: e.target.value })
+                        }
+                        placeholder="English Version"
+                      />
+                      <div className="flex gap-2">
                         <Button
                           size="sm"
                           onClick={() => handleUpdateQuestion(question)}
@@ -312,9 +326,13 @@ export default function Admin() {
                         >
                           Abbrechen
                         </Button>
-                      </>
-                    ) : (
-                      <>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="font-medium">🇩🇪 {question.content}</p>
+                      <p className="text-muted-foreground">🇬🇧 {question.content_en}</p>
+                      <div className="flex gap-2 mt-2">
                         <Button
                           size="sm"
                           variant="outline"
@@ -329,9 +347,9 @@ export default function Admin() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      </>
-                    )}
-                  </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
