@@ -37,6 +37,8 @@ export default function DiceGame() {
     }, 1000);
   };
 
+  const total = results[0] && results[1] ? results[0].value + results[1].value : null;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8 text-center">Würfelspiel</h1>
@@ -66,6 +68,9 @@ export default function DiceGame() {
                 <div>
                   <p className="text-2xl font-bold mb-2">Würfel 2: {results[1].value}</p>
                   <p className="text-lg">{results[1].rule}</p>
+                </div>
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-3xl font-bold">Summe: {total}</p>
                 </div>
               </div>
             )}

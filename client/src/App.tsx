@@ -8,6 +8,8 @@ import Home from "@/pages/home";
 import DiceGame from "@/pages/dice-game";
 import TruthOrDare from "@/pages/truth-or-dare";
 import StoryGenerator from "@/pages/story-generator";
+import { useState } from "react";
+import { LanguageContext, type Language } from "@/lib/i18n";
 
 function Router() {
   return (
@@ -27,10 +29,14 @@ function Router() {
 }
 
 function App() {
+  const [language, setLanguage] = useState<Language>('de');
+
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <LanguageContext.Provider value={{ language, setLanguage }}>
+        <Router />
+        <Toaster />
+      </LanguageContext.Provider>
     </QueryClientProvider>
   );
 }
