@@ -75,7 +75,7 @@ export default function ProfilePage() {
     try {
       const updates: Record<string, string> = {};
 
-      // Prüfe auf tatsächliche Änderungen
+      // Nur tatsächliche Änderungen sammeln
       if (formData.username.trim() !== user.username) {
         updates.username = formData.username.trim();
       }
@@ -86,16 +86,14 @@ export default function ProfilePage() {
         updates.bio = formData.bio.trim();
       }
 
-      // Nur wenn es wirklich Änderungen gibt
-      if (Object.keys(updates).length > 0) {
-        await updateProfile(updates);
-        toast({
-          title: "Erfolg",
-          description: "Profil wurde aktualisiert",
-        });
-      }
+      // Aktualisierung durchführen
+      await updateProfile(updates);
 
       setIsEditing(false);
+      toast({
+        title: "Erfolg",
+        description: "Profil wurde aktualisiert",
+      });
     } catch (error: any) {
       toast({
         title: "Fehler",
@@ -106,9 +104,8 @@ export default function ProfilePage() {
   };
 
   const startEditing = () => {
-    // Keine API-Aufrufe hier, nur UI-Status ändern
+    // Setze einfach nur den Bearbeitungsmodus und initialisiere die Formularwerte
     setIsEditing(true);
-    // Aktuelle Werte in das Formular laden
     setFormData({
       username: user.username,
       email: user.email,
@@ -118,7 +115,6 @@ export default function ProfilePage() {
 
   const cancelEditing = () => {
     setIsEditing(false);
-    // Formular auf aktuelle Werte zurücksetzen
     setFormData({
       username: user.username,
       email: user.email,

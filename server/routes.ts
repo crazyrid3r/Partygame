@@ -60,26 +60,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    const parsed = insertUserSchema.partial().safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ error: "Invalid user data" });
-    }
-
     try {
-      const updateData = Object.entries(parsed.data).reduce((acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[key] = value;
-        }
-        return acc;
-      }, {} as Record<string, any>);
-
-      if (Object.keys(updateData).length === 0) {
-        return res.status(400).json({ error: "No values to update" });
+      // Wenn wir im Bearbeitungsmodus sind, erlauben wir das Aktualisieren
+      // auch wenn keine Änderungen vorgenommen wurden
+      const updatedUser = await storage.getUser(req.user.id);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
       }
 
-      console.log('Updating user with data:', updateData); // Debug log
+      // Wenn es Aktualisierungen gibt, führen wir sie durch
+      if (Object.keys(req.body).length > 0) {
+        const parsed = insertUserSchema.partial().safeParse(req.body);
+        if (!parsed.success) {
+          return res.status(400).json({ error: "Invalid user data" });
+        }
 
-      const updatedUser = await storage.updateUser(req.user.id, updateData);
+        const updateData = Object.entries(parsed.data).reduce((acc, [key, value]) => {
+          if (value !== undefined) {
+            acc[key] = value;
+          }
+          return acc;
+        }, {} as Record<string, any>);
+
+        // Aktualisiere den Benutzer nur wenn es tatsächlich Änderungen gibt
+        if (Object.keys(updateData).length > 0) {
+          const updatedUser = await storage.updateUser(req.user.id, updateData);
+          return res.json(updatedUser);
+        }
+      }
+
+      // Wenn keine Änderungen vorliegen, senden wir einfach die aktuellen Benutzerdaten zurück
       res.json(updatedUser);
     } catch (error) {
       console.error("Update user error:", error);
